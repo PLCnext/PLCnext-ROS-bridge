@@ -8,7 +8,8 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  PhoenixBridge br;
+  PhoenixBridge br(nh);
   ROS_INFO_STREAM(ros::this_node::getName() << " Node started");
+  ros::waitForShutdown();
   return 0;
 }
