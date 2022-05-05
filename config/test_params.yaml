@@ -1,5 +1,5 @@
 grpc:
-  ip: "0.0.0.0"
+  address: "0.0.0.0"
   type: tcp
 
 # Organise the description file per bridging type

@@ -6,8 +6,8 @@
 /**
  * @brief Create bridges for each type. Parameter passed is the simple name to lookup in config/test_params.yaml
  */
-PhoenixBridge::PhoenixBridge()
+PhoenixBridge::PhoenixBridge(ros::NodeHandle nh)
 {
-  odom_bridge_.init("odometry");
-  twist_bridge_.init("twist");
+  odom_bridge_.init("odometry", nh);
+  twist_bridge_.init("twist", nh);
 }

@@ -2,6 +2,7 @@
 #define DUMMY_PHOENIX_COMM_H
 
 #include <string>
+#include <iostream>
 /// Include whatever is required for the communication layer. For gRPC this would be the headers generated from proto
 
 /**
@@ -36,6 +37,10 @@ private:
 template<typename T> inline
 bool DummyPhoenixComm<T>::sendToPLC(const std::string instance_path, const T &data)
 {
+  // Dummy statement to confirm the subscriber in the bridge is working
+  std::cout << "Sent data "
+//            << data
+            << " to PLC at datapath " << instance_path <<  std::endl;
   return true;
 }
 

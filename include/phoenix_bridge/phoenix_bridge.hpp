@@ -12,9 +12,10 @@
 class PhoenixBridge
 {
 public:
-  PhoenixBridge();
+  PhoenixBridge(ros::NodeHandle nh);
 
 private:
+  /// Declare all the bridge types to create
   BridgeType<nav_msgs::Odometry> odom_bridge_;
   BridgeType<geometry_msgs::Twist> twist_bridge_;
 };
