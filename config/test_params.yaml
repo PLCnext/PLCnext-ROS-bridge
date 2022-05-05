@@ -1,0 +1,19 @@
+grpc:
+  ip: "0.0.0.0"
+  type: tcp
+
+odometry:
+  publishers:
+    - [pub1, datapath1, 10]
+    - [pub2, datapath2, 20]
+  subscribers:
+    - [sub1, datapath1, 10]
+    - [sub2, datapath2, 20]
+
+twist:
+  publishers:
+    - [pub3, datapath3, 30]
+    - [pub4, datapath4, 40]
+  subscribers:
+    - [sub3, datapath3, 30]
+    - [sub4, datapath4, 40]
