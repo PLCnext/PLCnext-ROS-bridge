@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
 )
 
-
 catkin_package(
   INCLUDE_DIRS include
 )

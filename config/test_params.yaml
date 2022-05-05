@@ -2,11 +2,16 @@ grpc:
   ip: "0.0.0.0"
   type: tcp
 
-odometry:
-  publishers:
-    - [pub1, datapath1, 10]
+# Organise the description file per bridging type
+# Each type can have several pubs and subs
+# The list format per port (i.e. pub/sub) is [topic_name, grpc_instance_path, frequency]
+# See code comments in other headers for more info
+
+odometry: # This is the identifying string used in init of type
+  publishers: # Parsing this is hard coded
+    - [pub1, datapath1, 10] # Parsed to save as PortParams struct
     - [pub2, datapath2, 20]
-  subscribers:
+  subscribers: # Parsing this is hard coded
     - [sub1, datapath1, 10]
     - [sub2, datapath2, 20]
 
