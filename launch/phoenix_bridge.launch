@@ -1,0 +1,8 @@
+<launch>
+
+    <rosparam command="load" file="$(find phoenix_bridge)/config/test_params.yaml" />
+
+    <node pkg="phoenix_bridge" name="phoenix_bridge" type ="phoenix_bridge_node" output="screen">
+    </node>
+
+</launch>
