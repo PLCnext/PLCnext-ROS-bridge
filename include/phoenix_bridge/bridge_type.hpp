@@ -26,7 +26,6 @@ private:
   std::vector<PortParams> pub_params_; /// Parameters of publishers to create
   std::vector<PortParams> sub_params_; /// Parameters of subscribers to create
   void publisherFunction(const PortParams port);
-  void subscriberFunction(const boost::shared_ptr<const T> msg, std::string datapath);
   DummyPhoenixComm<T> comm_;
   ros::NodeHandle nh_;
   std::vector<ros::Subscriber> subscribers_;
@@ -93,9 +92,14 @@ void BridgeType<T>::init(const std::string param_name, ros::NodeHandle nh)
   /// Spawn subs
   for (auto port:sub_params_)
   {
-    subscribers_.push_back(nh_.subscribe<T>(port.name_, 10,
-                                           boost::bind(&BridgeType<T>::subscriberFunction, this, _1, port.datapath_)
-                                           ));
+    subscribers_.
+        push_back(nh_.subscribe<T>(port.name_, 10,
+                                    [this, port](const boost::shared_ptr<const T> msg) ->
+                                    void {
+                                      if(!comm_.sendToPLC(port.datapath_, *msg.get()))
+                                        ROS_ERROR_STREAM(port.name_ << " Failed to send data to PLC at " << port.datapath_);
+                                    }
+                                   ));
   }
 }
 
@@ -115,17 +119,6 @@ void BridgeType<T>::publisherFunction(const PortParams port)
     pub.publish(boost::make_shared<T>(msg_rcvd)); /// 0 copy transfer
     ros::Rate(port.frequency_).sleep();
   }
-}
-
-/**
- * @brief Function bound as callback per subscriber per BridgeType. Receive data from a ROS publisher and send to PLC
- * @param msg Received msg typical for ros callbacks
- * @param datapath The datapath in PLC to send the received msg to
- */
-template<typename T> inline
-void BridgeType<T>::subscriberFunction(const boost::shared_ptr<const T> msg, std::string datapath)
-{
-  comm_.sendToPLC(datapath, *msg.get());
 }
 
 #endif // BRIDGE_TYPE_H
