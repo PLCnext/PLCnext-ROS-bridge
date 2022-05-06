@@ -32,37 +32,6 @@ private:
 };
 
 /**
- * @brief Read the ports to create for the given type as defined by rosparams, typically uploaded from config/test_params.yaml
- *        Expect to read a list of lists where the embedded list corresponds
- *          to data fields as defineed by phoenix_contact/params_struct.h
- * @param param_name The fully resolved param path ex: "/odometry/publishers"
- * @param port_vector Save all the read param data into a vector of PortParams
- */
-template<typename T> inline
-void BridgeType<T>::getPortParams(const std::string param_name, std::vector<PortParams> &port_vector)
-{
-  /// @todo Verify types as per https://answers.ros.org/question/318544/retrieve-list-of-lists-from-yaml-file-parameter-server/
-  /// @todo Try catch everything
-  /// @todo Pass node handle and get params from resolved nondehandle namespace
-  XmlRpc::XmlRpcValue param_list;
-  if(!ros::param::get(param_name, param_list))
-  {
-    ROS_ERROR_STREAM(ros::this_node::getName() << " Could not find " << param_name);
-  }
-  for(int i=0; i<param_list.size(); i++)
-  {
-    /// 0 - topic_name - std::string
-    /// 1 - datapath (i.e. instance path for gRPC - std::string
-    /// 2 - frequency - int
-    port_vector.push_back(PortParams(param_list[i][0], param_list[i][1], param_list[i][2]));
-  }
-  for (auto ele:port_vector)
-  {
-    ROS_INFO_STREAM(param_name << ": " << ele.name_ << " " << ele.datapath_ << " " << ele.frequency_);
-  }
-}
-
-/**
  * @brief Read the params to create ports, spawn pubs and subs
  * @param param_name The simple name for the parameters of this type ex: "odometry" or "twist"
  */
@@ -70,9 +39,8 @@ template<typename T> inline
 void BridgeType<T>::init(const std::string param_name, ros::NodeHandle nh)
 {
   nh_ = nh;
-  /// Get params @todo do not use global namespace /, pass nodehandle instead
-  getPortParams("/"+ param_name +"/publishers", pub_params_);
-  getPortParams("/"+ param_name +"/subscribers", sub_params_);
+  getPortParams(param_name + "/publishers", pub_params_);
+  getPortParams(param_name + "/subscribers", sub_params_);
   std::string address;
   if(!ros::param::get("/grpc/address", address))
   {
@@ -100,6 +68,36 @@ void BridgeType<T>::init(const std::string param_name, ros::NodeHandle nh)
                                         ROS_ERROR_STREAM(port.name_ << " Failed to send data to PLC at " << port.datapath_);
                                     }
                                    ));
+  }
+}
+
+/**
+ * @brief Read the ports to create for the given type as defined by rosparams, typically uploaded from config/test_params.yaml
+ *        Expect to read a list of lists where the embedded list corresponds
+ *          to data fields as defineed by phoenix_contact/params_struct.h
+ * @param param_name The fully resolved param path ex: "/odometry/publishers"
+ * @param port_vector Save all the read param data into a vector of PortParams
+ */
+template<typename T> inline
+void BridgeType<T>::getPortParams(const std::string param_name, std::vector<PortParams> &port_vector)
+{
+  /// @todo Verify types as per https://answers.ros.org/question/318544/retrieve-list-of-lists-from-yaml-file-parameter-server/
+  /// @todo Try catch everything
+  XmlRpc::XmlRpcValue param_list;
+  if(!nh_.getParam(param_name, param_list))
+  {
+    ROS_ERROR_STREAM(ros::this_node::getName() << " Could not find " << param_name);
+  }
+  for(int i=0; i<param_list.size(); i++)
+  {
+    /// 0 - topic_name - std::string
+    /// 1 - datapath (i.e. instance path for gRPC - std::string
+    /// 2 - frequency - int
+    port_vector.push_back(PortParams(param_list[i][0], param_list[i][1], param_list[i][2]));
+  }
+  for (auto ele:port_vector)
+  {
+    ROS_INFO_STREAM(param_name << ": " << ele.name_ << " " << ele.datapath_ << " " << ele.frequency_);
   }
 }
 
