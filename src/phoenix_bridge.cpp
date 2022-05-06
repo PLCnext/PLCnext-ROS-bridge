@@ -8,6 +8,15 @@
  */
 PhoenixBridge::PhoenixBridge(ros::NodeHandle nh)
 {
-  odom_bridge_.init("odometry", nh);
-  twist_bridge_.init("twist", nh);
+  if (nh.hasParam("/odometry"))
+  {
+    ROS_INFO_STREAM("Spawing odometry bridge");
+    odom_bridge_.init("/odometry", nh);
+  }
+
+  if (nh.hasParam("/twist"))
+  {
+    ROS_INFO_STREAM("Spawing twist bridge");
+    twist_bridge_.init("/twist", nh);
+  }
 }
