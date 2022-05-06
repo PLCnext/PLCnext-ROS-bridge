@@ -1,0 +1,4 @@
+SetIO[] payload
+---
+bool status # If status=false, operation failed
+

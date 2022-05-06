@@ -1,0 +1,4 @@
+string[] datapaths
+---
+bool[] values
+bool status # If status=false, operation failed
