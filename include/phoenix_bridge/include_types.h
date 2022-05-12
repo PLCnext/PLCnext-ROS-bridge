@@ -6,9 +6,18 @@
 #include "phoenix_bridge/dummy_phoenix_comm.h"
 
 #include <ros/ros.h>
-#include <std_msgs/Bool.h>
+
+/*[[[cog
+import cog
+from param_parser.param_parser import ParamParser
+obj = ParamParser()
+for type in obj.types_:
+        cog.outl("#include <{}/{}.h>".format(type[0], type[1]))
+]]]*/
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
+#include <std_msgs/String.h>
+//[[[end]]]
 
 
 #endif // INCLUDE_TYPES_H

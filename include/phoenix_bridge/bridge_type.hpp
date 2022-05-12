@@ -42,7 +42,7 @@ void BridgeType<T>::init(const std::string param_name, ros::NodeHandle nh)
   getPortParams(param_name + "/publishers", pub_params_);
   getPortParams(param_name + "/subscribers", sub_params_);
   std::string address;
-  if(!ros::param::get("/grpc/address", address))
+  if(!ros::param::get("communication/grpc/address", address))
   {
     ROS_ERROR_STREAM(ros::this_node::getName() << " Could not find grpc address param");
   }
