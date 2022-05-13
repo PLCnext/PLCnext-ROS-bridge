@@ -16,18 +16,21 @@
 #         address: "0.0.0.0"
 #         type: tcp
 
-# /twist_bridge:
-#   ros__parameters:
-#     geometry_msgs/msg/Twist:
-#       publishers:
-#         - [pub_twist_1, datapath__twist_1, 30]
-#         - [pub_twist_2, datapath_twist_2, 40]
-#       subscribers:
-#         - [sub_twist_1, datapath_twist_3, 30]
-#         - [sub_twist_2, datapath_twist_4, 40]
-#       grpc:
-#         address: "0.0.0.0"
-#         type: tcp
+/twist_bridge:
+  ros__parameters:
+    grpc:
+      address: "0.0.0.0"
+      type: "tcp"
+    msg_type: "geometry_msgs/msg/Twist"
+    publishers:
+      topics: [pub_twist1, pub_twist2]
+      datapaths: [path_twist_1, path_twist_2]
+      frequencies: [11, 12]
+    subscribers:
+      topics: [sub_twist3, sub_twist4]
+      datapaths: [path_twist_3, path_twist_4]
+      frequencies: [13, 14]
+    use_sim_time: false
 
 /string_bridge:
   ros__parameters:
@@ -36,13 +39,13 @@
       type: "tcp"
     msg_type: "std_msgs/msg/String"
     publishers:
-      topics: [pub11, pub12]
-      datapaths: [path11, path12]
-      frequencies: [11, 12]
+      topics: [pub_string_1, pub_string_2]
+      datapaths: [path_string_1, path_string_2]
+      frequencies: [21, 22]
     subscribers:
-      topics: [sub13, sub14]
-      datapaths: [path13, path14]
-      frequencies: [13, 14]
+      topics: [sub_string_3, sub_string_4]
+      datapaths: [path_string_3, path_string_4]
+      frequencies: [23, 24]
     use_sim_time: false
     # std_msgs/msg/String:
     #   publishers:
