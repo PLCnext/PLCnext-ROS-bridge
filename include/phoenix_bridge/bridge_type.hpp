@@ -63,17 +63,6 @@ void BridgeType<T>::init()
 
   /// Spawn subs
   this->spawnSubscribers();
-//  for (auto port:sub_params_)
-//  {
-//    subscribers_.
-//        push_back(nh_.subscribe<T>(port.name_, 10,
-//                                    [this, port](const boost::shared_ptr<const T> msg) ->
-//                                    void {
-//                                      if(!comm_.sendToPLC(port.datapath_, *msg.get()))
-//                                        ROS_ERROR_STREAM(port.name_ << " Failed to send data to PLC at " << port.datapath_);
-//                                    }
-//                                   ));
-//  }
 }
 
 /**
@@ -115,23 +104,11 @@ void BridgeType<T>::getPortParams()
     RCLCPP_ERROR_STREAM(this->get_logger(), "Subscriber array sizes not equal!!");
     rclcpp::shutdown();
   }
-
-  RCLCPP_INFO(this->get_logger(), "Publishers: ");
-  for (size_t i=0; i<pub_topics_.size(); i++)
-  {
-    RCLCPP_INFO_STREAM(this->get_logger(),
-                       "  [" << pub_topics_[i] << ", " << pub_datapaths_[i] << ", " << pub_freqs_[i] << "]" );
-  }
-
-  RCLCPP_INFO(this->get_logger(), "Subscribers: ");
-  for (size_t i=0; i<sub_topics_.size(); i++)
-  {
-    RCLCPP_INFO_STREAM(this->get_logger(),
-                       "  [" << sub_topics_[i] << ", " << sub_datapaths_[i] << ", " << sub_freqs_[i] << "]" );
-  }
-  RCLCPP_INFO(this->get_logger(), "");
 }
 
+/**
+* @brief Spawn publishers based on the read rosparams for this type
+*/
 template<typename T> inline
 void BridgeType<T>::spawnPublishers()
 {
@@ -142,9 +119,9 @@ void BridgeType<T>::spawnPublishers()
                           pub_topics_[i].c_str(), pub_datapaths_[i].c_str(), pub_freqs_[i]);
 
     /// The publishers created here are stored in memory so that even when the timer callback goes out of scope,
-    /// the topic is held. This consumes more memory
+    /// the publisher is held. This consumes more memory
     /// If instead the pub is created only in the timer callback, especially for low frequency publishers,
-    /// it would appear in between timer callbacks that there is no publisher. It does reduce memory consumption though.
+    /// it would appear in between timer callbacks that there is no publisher. This consumers less memory.
     typename rclcpp::Publisher<T>::SharedPtr pub = this->create_publisher<T>(pub_topics_[i], 1000);
     pubs_.push_back(pub);
     pub_timers_.push_back(
@@ -158,10 +135,29 @@ void BridgeType<T>::spawnPublishers()
   }
 }
 
+/**
+ * @brief Spawn subscribers based on the read rosparams for this type
+*/
 template<typename T> inline
 void BridgeType<T>::spawnSubscribers()
 {
-
+  for (size_t i=0; i<sub_topics_.size(); i++)
+  {
+    {
+      RCLCPP_INFO(this->get_logger(),
+                         "Spawning subscriber  [%s, %s, %d]",
+                            sub_topics_[i].c_str(), sub_datapaths_[i].c_str(), sub_freqs_[i]);
+      subs_.
+          push_back(this->create_subscription<T>(
+                     sub_topics_[i], 10,
+                     [this, i](const typename T::SharedPtr msg) ->
+                     void {
+                       if(!comm_.sendToPLC(sub_datapaths_[i], *msg.get()))
+                         RCLCPP_ERROR_STREAM(this->get_logger(),
+                               sub_topics_[i] << " Failed to send data to PLC at " << sub_datapaths_[i]);
+                       }));
+    }
+  }
 }
 
 #endif // BRIDGE_TYPE_H

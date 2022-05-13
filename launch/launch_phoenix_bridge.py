@@ -15,7 +15,7 @@ def generate_launch_description():
     node=Node(
         package = 'phoenix_bridge', # Do not specify node name, as we spawn multiple nodes from this executable
         executable = 'phoenix_bridge_node',
-        emulate_tty=True,
+        output='screen',
         parameters = [config]
     )
 
