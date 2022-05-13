@@ -1,33 +1,56 @@
-communication:
-  grpc:
-    address: "0.0.0.0"
-    type: tcp
-
 # Organise the description file per bridging type
 # Each type can have several pubs and subs
 # The list format per port (i.e. pub/sub) is [topic_name, grpc_instance_path, frequency]
 # See code comments in other headers for more info
 
-nav_msgs/Odometry: # This is the identifying string used in init of type
-  publishers: # Parsing this is hard coded
-    - [pub_odom_1, datapath_odom_1, 10] # Parsed to save as PortParams struct
-    - [pub_odom_2, datapath_odom_2, 20]
-  subscribers: # Parsing this is hard coded
-    - [sub_odom_1, datapath_odom_3, 10]
-    - [sub_odom_2, datapath_odom_4, 20]
+# /odom_bridge: # Node name
+#   ros__parameters:
+#     nav_msgs/msg/Odometry: # This is the identifying string used in init of type
+#       publishers: # Parsing this is hard coded
+#         - [pub_odom_1, datapath_odom_1, 10] # Parsed to save as PortParams struct
+#         - [pub_odom_2, datapath_odom_2, 20]
+#       subscribers: # Parsing this is hard coded
+#         - [sub_odom_1, datapath_odom_3, 10]
+#         - [sub_odom_2, datapath_odom_4, 20]
+#       grpc:
+#         address: "0.0.0.0"
+#         type: tcp
 
-geometry_msgs/Twist:
-  publishers:
-    - [pub_twist_1, datapath__twist_1, 30]
-    - [pub_twist_2, datapath_twist_2, 40]
-  subscribers:
-    - [sub_twist_1, datapath_twist_3, 30]
-    - [sub_twist_2, datapath_twist_4, 40]
+# /twist_bridge:
+#   ros__parameters:
+#     geometry_msgs/msg/Twist:
+#       publishers:
+#         - [pub_twist_1, datapath__twist_1, 30]
+#         - [pub_twist_2, datapath_twist_2, 40]
+#       subscribers:
+#         - [sub_twist_1, datapath_twist_3, 30]
+#         - [sub_twist_2, datapath_twist_4, 40]
+#       grpc:
+#         address: "0.0.0.0"
+#         type: tcp
 
-std_msgs/String:
-  publishers:
-    - [pub_string_1, datapath__string_1, 50]
-    - [pub_string_2, datapath_string_2, 60]
-  subscribers:
-    - [sub_string_1, datapath_string_3, 50]
-    - [sub_string_2, datapath_string_4, 60]
+/string_bridge:
+  ros__parameters:
+    grpc:
+      address: "0.0.0.0"
+      type: "tcp"
+    msg_type: "std_msgs/msg/String"
+    publishers:
+      topics: [pub11, pub12]
+      datapaths: [path11, path12]
+      frequencies: [11, 12]
+    subscribers:
+      topics: [sub13, sub14]
+      datapaths: [path13, path14]
+      frequencies: [13, 14]
+    use_sim_time: false
+    # std_msgs/msg/String:
+    #   publishers:
+    #     - [pub_string_1, datapath__string_1, 50]
+    #     - [pub_string_2, datapath_string_2, 60]
+    #   subscribers:
+    #     - [sub_string_1, datapath_string_3, 50]
+    #     - [sub_string_2, datapath_string_4, 60]
+    #   grpc:
+    #     address: "0.0.0.0"
+    #     type: tcp

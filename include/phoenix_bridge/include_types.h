@@ -14,6 +14,8 @@ obj = ParamParser()
 for type in obj.types_:
         cog.outl("#include <{}/msg/{}.h>".format(type[0], type[1]))
 ]]]*/
+#include <std_msgs/msg/string.hpp>
+#include <geometry_msgs/msg/twist.hpp>
 //[[[end]]]
 
 

@@ -20,20 +20,25 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 
-
 # C++ stuff
 include_directories(include)
 
-add_executable(phoenix_bridge src/phoenix_bridge_node.cpp
+add_executable(phoenix_bridge_node src/phoenix_bridge_node.cpp
                               src/phoenix_bridge.cpp)
-ament_target_dependencies(phoenix_bridge rclcpp)
+ament_target_dependencies(phoenix_bridge_node rclcpp)
 
 install(TARGETS
-  phoenix_bridge
+  phoenix_bridge_node
   DESTINATION lib/${PROJECT_NAME})
 
 # Python stuff
 ament_python_install_package(${PROJECT_NAME})
+
+install(DIRECTORY 
+  launch
+  config
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
