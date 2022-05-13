@@ -21,19 +21,21 @@ class BridgeType : public rclcpp::Node
 {
 public:
   BridgeType(std::string node_name);
-  void getPortParams();
   void init();
 
 private:
-  std::vector<PortParams> pub_params_; /// Parameters of publishers to create
-  std::vector<PortParams> sub_params_; /// Parameters of subscribers to create
-  void publisherFunction(typename rclcpp::Publisher<T>::SharedPtr pub, std::string datapath);
   DummyPhoenixComm<T> comm_;
   std::vector<std::string> pub_topics_, pub_datapaths_;
   std::vector<std::string> sub_topics_, sub_datapaths_;
   std::vector<long int> pub_freqs_, sub_freqs_;
   std::vector<rclcpp::TimerBase::SharedPtr> pub_timers_;
   std::vector<typename rclcpp::Publisher<T>::SharedPtr> pubs_;
+  std::vector<typename rclcpp::Subscription<T>::SharedPtr> subs_;
+
+  void getPortParams();
+  void spawnPublishers();
+  void spawnSubscribers();
+
 };
 
 template<typename T> inline
@@ -44,36 +46,23 @@ BridgeType<T>::BridgeType(std::string node_name) :
 }
 
 /**
- * @brief Read the params to create ports, spawn pubs and subs
+ * @brief Read the rosparams to create ports and spawn pubs & subs
  * @param param_name The simple name for the parameters of this type ex: "odometry" or "twist"
  */
 template<typename T> inline
 void BridgeType<T>::init()
 {
 
-  getPortParams();
+  this->getPortParams();
 
   /// Initialise communication layer
   comm_.init(this->get_parameter("grpc.address").as_string());
 
   /// Spawn pubs
-  for (size_t i=0; i<pub_topics_.size(); i++)
-  {
-    RCLCPP_INFO(this->get_logger(),
-                       "Spawning publisher  [%s, %s, %d]", pub_topics_[i].c_str(), pub_datapaths_[i].c_str(), pub_freqs_[i]);
+  this->spawnPublishers();
 
-    typename rclcpp::Publisher<T>::SharedPtr pub = this->create_publisher<T>(pub_topics_[i], 1000);
-    pubs_.push_back(pub);
-    std::function<void()> fcn = std::bind(&BridgeType::publisherFunction, this, pub, pub_datapaths_[i]);
-
-    pub_timers_.push_back(this->create_wall_timer(std::chrono::milliseconds(1000/pub_freqs_[i]),fcn));
-
-//    std::thread thr(std::bind(&BridgeType::publisherFunction,
-//                              this, pub_topics_[i], pub_datapaths_[i]));
-//    thr.detach(); // Thread nust ensure graceful shutdown of itself since it is detached
-  }
-
-//  /// Spawn subs
+  /// Spawn subs
+  this->spawnSubscribers();
 //  for (auto port:sub_params_)
 //  {
 //    subscribers_.
@@ -143,17 +132,36 @@ void BridgeType<T>::getPortParams()
   RCLCPP_INFO(this->get_logger(), "");
 }
 
-/**
- * @brief Function bound to a thread per publisher per BridgeType. Get data from PLC and publish at parametrised frequency
- * @param port PortParam object, specifying which datapath to query data for, which topic to publish on and at what frequency
- */
 template<typename T> inline
-void BridgeType<T>::publisherFunction(typename rclcpp::Publisher<T>::SharedPtr pub, std::string datapath)
+void BridgeType<T>::spawnPublishers()
 {
-  T msg_rcvd;
-  comm_.getFromPLC(datapath, msg_rcvd);
-  typename T::SharedPtr msg_ptr = std::make_shared<T>(msg_rcvd);
-  pub->publish(msg_rcvd); // is this 0 copy transfer???
+  for (size_t i=0; i<pub_topics_.size(); i++)
+  {
+    RCLCPP_INFO(this->get_logger(),
+                       "Spawning publisher  [%s, %s, %d]",
+                          pub_topics_[i].c_str(), pub_datapaths_[i].c_str(), pub_freqs_[i]);
+
+    /// The publishers created here are stored in memory so that even when the timer callback goes out of scope,
+    /// the topic is held. This consumes more memory
+    /// If instead the pub is created only in the timer callback, especially for low frequency publishers,
+    /// it would appear in between timer callbacks that there is no publisher. It does reduce memory consumption though.
+    typename rclcpp::Publisher<T>::SharedPtr pub = this->create_publisher<T>(pub_topics_[i], 1000);
+    pubs_.push_back(pub);
+    pub_timers_.push_back(
+          this->create_wall_timer(std::chrono::milliseconds(1000/pub_freqs_[i]),
+                                  [this, i, pub]()-> void{
+                                      T msg_rcvd;
+                                      comm_.getFromPLC(pub_datapaths_[i], msg_rcvd);
+                                      typename T::SharedPtr msg_ptr = std::make_shared<T>(msg_rcvd);
+                                      pub->publish(msg_rcvd); /// @todo: is this 0 copy transfer???
+                                    }));
+  }
+}
+
+template<typename T> inline
+void BridgeType<T>::spawnSubscribers()
+{
+
 }
 
 #endif // BRIDGE_TYPE_H
