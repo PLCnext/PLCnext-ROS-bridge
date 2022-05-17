@@ -9,14 +9,14 @@
 
 /*[[[cog
 import cog
-from phoenix_bridge.param_parser import ParamParser
-obj = ParamParser()
-for type in obj.types_:
-        cog.outl("#include <{}/msg/{}.h>".format(type[0], type[1]))
+from phoenix_bridge.param_parser import ParamParser, getResolvedTypeName
+parser = ParamParser()
+for node in parser.nodes_:
+      cog.outl("#include<{}.hpp>".format(node.header_name))
 ]]]*/
-#include <std_msgs/msg/string.hpp>
-#include <geometry_msgs/msg/twist.hpp>
+#include<nav_msgs/msg/odometry.hpp>
+#include<geometry_msgs/msg/twist.hpp>
+#include<std_msgs/msg/string.hpp>
 //[[[end]]]
-
 
 #endif // INCLUDE_TYPES_H

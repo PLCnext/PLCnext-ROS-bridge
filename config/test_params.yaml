@@ -3,20 +3,24 @@
 # The list format per port (i.e. pub/sub) is [topic_name, grpc_instance_path, frequency]
 # See code comments in other headers for more info
 
-# /odom_bridge: # Node name
-#   ros__parameters:
-#     nav_msgs/msg/Odometry: # This is the identifying string used in init of type
-#       publishers: # Parsing this is hard coded
-#         - [pub_odom_1, datapath_odom_1, 10] # Parsed to save as PortParams struct
-#         - [pub_odom_2, datapath_odom_2, 20]
-#       subscribers: # Parsing this is hard coded
-#         - [sub_odom_1, datapath_odom_3, 10]
-#         - [sub_odom_2, datapath_odom_4, 20]
-#       grpc:
-#         address: "0.0.0.0"
-#         type: tcp
+odom_bridge:
+  ros__parameters:
+    grpc:
+      address: "0.0.0.0"
+      type: "tcp"
+    msg_type: "nav_msgs/msg/Odom" # Include header filename is derived from this in lower case. Scope resolution is derived from this as well.
+    header_name: "nav_msgs/msg/odometry" # Optional if include header filename is different from msg type name. Do not include the ".hpp" part
+    publishers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
+      topics: [pub_odom_1, pub_odom_2]
+      datapaths: [path_odom_1, path_odom_2]
+      frequencies: [11, 12]
+    subscribers:
+      topics: [sub_odom_3, sub_odom_4]
+      datapaths: [path_odom_3, path_odom_4]
+      frequencies: [13, 14]
+    use_sim_time: false
 
-/twist_bridge:
+twist_bridge:
   ros__parameters:
     grpc:
       address: "0.0.0.0"
@@ -32,7 +36,7 @@
       frequencies: [13, 14]
     use_sim_time: false
 
-/string_bridge:
+string_bridge:
   ros__parameters:
     grpc:
       address: "0.0.0.0"
@@ -47,13 +51,3 @@
       datapaths: [path_string_3, path_string_4]
       frequencies: [23, 24]
     use_sim_time: false
-    # std_msgs/msg/String:
-    #   publishers:
-    #     - [pub_string_1, datapath__string_1, 50]
-    #     - [pub_string_2, datapath_string_2, 60]
-    #   subscribers:
-    #     - [sub_string_1, datapath_string_3, 50]
-    #     - [sub_string_2, datapath_string_4, 60]
-    #   grpc:
-    #     address: "0.0.0.0"
-    #     type: tcp

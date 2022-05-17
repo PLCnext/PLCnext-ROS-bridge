@@ -2,7 +2,6 @@
 #define BRIDGE_TYPE_H
 
 #include "phoenix_bridge/include_types.h"
-#include "phoenix_bridge/params_struct.hpp"
 #include "phoenix_bridge/dummy_phoenix_comm.h"
 
 #include <vector>

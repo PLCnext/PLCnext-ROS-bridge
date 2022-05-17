@@ -21,9 +21,21 @@ class CommPort:
 class BridgeType:
     node_name: str
     msg_type: str
+    header_name : str
     grpc: CommPort
     publishers: List[Port]
     subscribers: List[Port]
+
+
+def getResolvedTypeName(typename: str):
+        parts = typename.split("/")
+        result = ""
+        for i in range(size(parts)):
+            if i < size(parts) - 1:
+                result = result + parts[i] + "::"
+            else:
+                result = result + parts[i].title()
+        return result
 
 class ParamParser(object):
     nodes_ = []
@@ -56,9 +68,15 @@ class ParamParser(object):
             subscribers = []
             for x in range(size(pub_topics)):
                 subscribers.append(Port(sub_topics[x], sub_datapaths[x], sub_frequencies[x]))
+            
+            if "header_name" in params_[node]['ros__parameters']:
+                header_name = params_[node]['ros__parameters']['header_name']
+            else:
+                header_name = params_[node]['ros__parameters']['msg_type'].lower()
                 
             self.nodes_.append(BridgeType(node, 
                                    params_[node]['ros__parameters']['msg_type'], 
+                                   header_name,
                                    CommPort(params_[node]['ros__parameters']['grpc']['address'], params_[node]['ros__parameters']['grpc']['type']), 
                                    publishers, 
                                    subscribers))
@@ -69,13 +87,13 @@ if __name__ == "__main__":
     node: BridgeType
     for node in obj.nodes_:
         print(node.node_name)
-        print(" ", node.msg_type)
+        print(" ", node.msg_type, " -> ", getResolvedTypeName(node.msg_type))
+        print(" ", node.header_name,)
         print(" ", node.grpc.address, node.grpc.type)
         for pub in node.publishers:
             print("    pub:", pub.topic, pub.datapath, pub.frequency)
         for sub in node.subscribers:
             print("    sub:", sub.topic, sub.datapath, sub.frequency)
         print("")
-
 
 
