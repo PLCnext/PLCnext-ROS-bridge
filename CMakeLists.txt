@@ -27,10 +27,18 @@ add_custom_target(
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/SetIO.msg"
+  "srv/BatchGetIO.srv"
+  "srv/BatchSetIO.srv"
+  "srv/SingleGetIO.srv"
+  "srv/SingleSetIO.srv"
+)
 
 # C++ stuff
 include_directories(include)
@@ -43,14 +51,24 @@ ament_target_dependencies(phoenix_bridge_node
                             nav_msgs
                             geometry_msgs)
 
+add_executable(phoenix_io_services_node src/phoenix_io_services_node.cpp
+                                        src/phoenix_io_services.cpp)
+add_dependencies(phoenix_io_services_node ${PROJECT_NAME})
+rosidl_target_interfaces(phoenix_io_services_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
+ament_target_dependencies(phoenix_io_services_node
+                            rclcpp)
+
 install(TARGETS
   phoenix_bridge_node
+  phoenix_io_services_node
   DESTINATION lib/${PROJECT_NAME})
 
 # Python stuff
 ament_python_install_package(${PROJECT_NAME})
 
 install(DIRECTORY 
+  msg
+  srv
   launch
   config
   DESTINATION share/${PROJECT_NAME}
