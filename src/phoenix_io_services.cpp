@@ -7,11 +7,12 @@ PhoenixIOServices::PhoenixIOServices(ros::NodeHandle nh):
 {
   /// Initialise comm layer
   std::string address;
-  if(!nh_.getParam("grpc/address", address))
+  if(!ros::param::get("communication/grpc/address", address))
   {
-    ROS_ERROR_STREAM(ros::this_node::getName() << " Could not find grpc/address param");
-    return;
+    ROS_ERROR_STREAM(ros::this_node::getName() << " Could not find grpc address param");
   }
+
+  /// Initialise communication layer
   comm_.init(address);
 
   /// Spawn services
@@ -59,7 +60,7 @@ bool PhoenixIOServices::batchGetCB(phoenix_bridge::BatchGetIO::Request &req, pho
       res.status = false;
       ROS_WARN_STREAM(ros::this_node::getName() << ": batch_get_service failed getting " << req.datapaths[i]);
     }
-    res.values[i] = val;
+    res.values.push_back(val);
   }
   return res.status;
 }
