@@ -73,7 +73,7 @@ bool PhoenixIOServices::batchSetCB(const std::shared_ptr<BatchSetIO::Request> re
     return false;
   }
   response->status = true;
-  for (int i=0; i< request->payload.size(); i++)
+  for (long unsigned int i=0; i< request->payload.size(); i++)
   {
     response->status=
         comm_.sendToPLC(request->payload[i].datapath, request->payload[i].value);
@@ -98,7 +98,7 @@ bool PhoenixIOServices::batchGetCB(const std::shared_ptr<BatchGetIO::Request> re
   }
   response->status = true;
 
-  for (int i=0; i< request->datapaths.size(); i++)
+  for (long unsigned int i=0; i< request->datapaths.size(); i++)
   {
     bool val = true;
     if(!comm_.getFromPLC(request->datapaths[i], val))

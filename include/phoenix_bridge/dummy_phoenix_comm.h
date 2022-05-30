@@ -37,6 +37,7 @@ private:
 template<typename T> inline
 bool DummyPhoenixComm<T>::sendToPLC(const std::string instance_path, const T &data)
 {
+  (void) data;
   // Dummy statement to confirm the subscriber in the bridge is working
   std::cout << "Sent data "
 //            << data
@@ -54,6 +55,8 @@ bool DummyPhoenixComm<T>::sendToPLC(const std::string instance_path, const T &da
 template<typename T> inline
 bool DummyPhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
 {
+  (void) instance_path;
+  (void) data;
   return true;
 }
 
@@ -64,5 +67,6 @@ bool DummyPhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
 template<typename T> inline
 void DummyPhoenixComm<T>::init(const std::string address)
 {
+  (void) address;
 }
 #endif // DUMMY_PHOENIX_COMM_H
