@@ -9,7 +9,13 @@
 
 /*[[[cog
 import cog
+import sys
+import os
+
+sys.path.append(os.getcwd()) # Necessary when colcon build invokes this script
+
 from phoenix_bridge.param_parser import ParamParser, getResolvedTypeName
+
 parser = ParamParser()
 for node in parser.nodes_:
       cog.outl("#include<{}.hpp>".format(node.header_name))
