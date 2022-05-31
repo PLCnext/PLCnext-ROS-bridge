@@ -3,6 +3,9 @@
 
 #include <string>
 #include <iostream>
+
+#include "phoenix_bridge/conversions.hpp"
+
 /// Include whatever is required for the communication layer. For gRPC this would be the headers generated from proto
 
 /**
@@ -57,6 +60,8 @@ bool DummyPhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
 {
   (void) instance_path;
   (void) data;
+  T grpc_obj;
+  conversions::castToGrpcObject<T>(data, grpc_obj);
   return true;
 }
 

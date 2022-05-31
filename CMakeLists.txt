@@ -20,6 +20,7 @@ add_custom_target(
  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
  COMMAND echo "Generating bridge types based on config file"
  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/include_types.h
+ COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/conversions.hpp
  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/src/phoenix_bridge_node.cpp
  COMMENT "COGGING"
 )
