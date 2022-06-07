@@ -6,18 +6,32 @@ from launch_ros.actions import Node
 def generate_launch_description():
     ld = LaunchDescription()
 
-    config = os.path.join(
+    config_bridge = os.path.join(
         get_package_share_directory('phoenix_bridge'),
         'config',
         'test_params.yaml'
         )
+
+    config_services = os.path.join(
+        get_package_share_directory('phoenix_bridge'),
+        'config',
+        'services_params.yaml'
+        )
         
-    node=Node(
+    node_bridge=Node(
         package = 'phoenix_bridge', # Do not specify node name, as we spawn multiple nodes from this executable
         executable = 'phoenix_bridge_node',
         output='screen',
-        parameters = [config]
+        parameters = [config_bridge]
     )
 
-    ld.add_action(node)
+    node_services=Node(
+        package = 'phoenix_bridge', # Do not specify node name, as we spawn multiple nodes from this executable
+        executable = 'phoenix_io_services_node',
+        output='screen',
+        parameters = [config_services]
+    )
+
+    ld.add_action(node_bridge)
+    ld.add_action(node_services)
     return ld

@@ -39,6 +39,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/BatchSetIO.srv"
   "srv/SingleGetIO.srv"
   "srv/SingleSetIO.srv"
+  "srv/AnalogIO.srv"
 )
 
 # C++ stuff

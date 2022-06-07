@@ -17,6 +17,19 @@ namespace conversions
                 "Conversion from type " << typeid(ros_msg).name() << " not implemented!!");
   }
 
+  // double & bool are used by phoenix IO services
+  template <> inline
+  void castToGrpcObject<double>(double ros_msg, double &grpc_object)
+  {
+    grpc_object = ros_msg;
+  }
+
+  template <> inline
+  void castToGrpcObject<bool>(bool ros_msg, bool &grpc_object)
+  {
+    grpc_object = ros_msg;
+  }
+
   /*[[[cog
   import cog
   import sys

@@ -9,7 +9,10 @@ PhoenixIOServices::PhoenixIOServices(const std::string node_name,
 {
   RCLCPP_INFO_STREAM(this->get_logger(), "Initialising services");
 
-  comm_.init(this->get_parameter("grpc.address").as_string());
+  this->declare_parameter("grpc.address");
+
+  digital_comm_.init(this->get_parameter("grpc.address").as_string());
+  analog_comm_.init(this->get_parameter("grpc.address").as_string());
 
   single_set_service_ =
       this->create_service<SingleSetIO>("single_set_IO",
@@ -35,13 +38,25 @@ PhoenixIOServices::PhoenixIOServices(const std::string node_name,
                                                   this,
                                                   std::placeholders::_1,
                                                   std::placeholders::_2));
+  read_analog_service =
+      this->create_service<AnalogIO>("read_analog_IO",
+                                        std::bind(&PhoenixIOServices::readAnalogIOCB,
+                                                  this,
+                                                  std::placeholders::_1,
+                                                  std::placeholders::_2));
+  write_analog_service =
+      this->create_service<AnalogIO>("write_analog_IO",
+                                        std::bind(&PhoenixIOServices::writeAnalogIOCB,
+                                                  this,
+                                                  std::placeholders::_1,
+                                                  std::placeholders::_2));
 }
 
 bool PhoenixIOServices::singleSetCB(const std::shared_ptr<SingleSetIO::Request> request,
                                     std::shared_ptr<SingleSetIO::Response> response)
 {
   RCLCPP_INFO_STREAM(this->get_logger(), "Single set service called");
-  response->status = comm_.sendToPLC(request->datapath, request->value);
+  response->status = digital_comm_.sendToPLC(request->datapath, request->value);
   if (!response->status)
   {
     RCLCPP_WARN_STREAM(this->get_logger(), " set_single_IO failed");
@@ -54,7 +69,7 @@ bool PhoenixIOServices::singleGetCB(const std::shared_ptr<SingleGetIO::Request> 
 {
   RCLCPP_INFO_STREAM(this->get_logger(), "Single set service called");
   bool val;
-  response->status = comm_.getFromPLC(request->datapath, val);
+  response->status = digital_comm_.getFromPLC(request->datapath, val);
   response->value = val;
   if (!response->status)
   {
@@ -76,7 +91,7 @@ bool PhoenixIOServices::batchSetCB(const std::shared_ptr<BatchSetIO::Request> re
   for (long unsigned int i=0; i< request->payload.size(); i++)
   {
     response->status=
-        comm_.sendToPLC(request->payload[i].datapath, request->payload[i].value);
+        digital_comm_.sendToPLC(request->payload[i].datapath, request->payload[i].value);
     if(!response->status)
     {
       RCLCPP_WARN_STREAM(this->get_logger(), ": batch_set_service failed setting " << request->payload[i].datapath);
@@ -101,13 +116,39 @@ bool PhoenixIOServices::batchGetCB(const std::shared_ptr<BatchGetIO::Request> re
   for (long unsigned int i=0; i< request->datapaths.size(); i++)
   {
     bool val = true;
-    if(!comm_.getFromPLC(request->datapaths[i], val))
+    if(!digital_comm_.getFromPLC(request->datapaths[i], val))
     {
       response->status = false;
       RCLCPP_WARN_STREAM(this->get_logger(), ": batch_get_service failed getting " << request->datapaths[i]);
       return false;
     }
     response->values.push_back(val);
+  }
+  return response->status;
+}
+
+bool PhoenixIOServices::readAnalogIOCB(const std::shared_ptr<AnalogIO::Request> request, std::shared_ptr<AnalogIO::Response> response)
+{
+  RCLCPP_INFO_STREAM(this->get_logger(), "Read analog IO service called");
+  double val;
+  response->status = analog_comm_.getFromPLC(request->instance_path, val);
+  response->instance_path = request->instance_path;
+  response->value = val;
+  if (!response->status)
+  {
+    RCLCPP_WARN_STREAM(this->get_logger(), "read_analog_IO failed");
+  }
+  return response->status;
+}
+
+bool PhoenixIOServices::writeAnalogIOCB(const std::shared_ptr<AnalogIO::Request> request, std::shared_ptr<AnalogIO::Response> response)
+{
+  RCLCPP_INFO_STREAM(this->get_logger(), "Write analog IO service called");
+  response->status = analog_comm_.sendToPLC(request->instance_path, request->value);
+  response->instance_path = request->instance_path;
+  if (!response->status)
+  {
+    RCLCPP_WARN_STREAM(this->get_logger(), " write_analog_IO failed");
   }
   return response->status;
 }
