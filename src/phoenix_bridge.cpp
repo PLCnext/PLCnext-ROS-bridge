@@ -10,7 +10,12 @@ PhoenixBridge::PhoenixBridge(ros::NodeHandle nh)
 {
   /*[[[cog
   import cog
-  from param_parser.param_parser import ParamParser
+  import sys
+  import os
+
+  sys.path.append(os.getcwd()) # Necessary when build invokes this script
+  from src.parsers.param_parser import ParamParser
+
   obj = ParamParser()
   for type in obj.types_:
           cog.outl(  "if (nh.hasParam(\"{}/{}\"))                   "   .format(type[0], type[1])                                 )
