@@ -10,7 +10,7 @@ TypesDict = {
     "float64" : "CT_Real64",
     "double"  : "CT_Real64",
     "int32"   : "CT_DInt",
-    "uint32"   : "CT_UDInt",
+    "uint32"   : "CT_UDInt"
     }
 
 # Get grpc type for given cpp type
@@ -70,7 +70,7 @@ def get_type_name_from_parts(parts):
 
 
 ### Decompose the msg type into a list of fields of the structs and their variables
-def decomposeRosMsgType(msg_type):
+def decompose_ros_msg_type(msg_type):
     fields = []
     msg_subtypes = parse_type(msg_type)
     max_depth = 0
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     for node in params.nodes_:
         print("----------"+node.header_name+"---------------")
         # locate does a lexical cast from a string to a type that can be found in sys.path
-        fields = decomposeRosMsgType(locate(extract_import_names(node.header_name)))
+        fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
         fields.insert(0,(node.header_name.replace("/","_"), 0, "STRUCT")) # Insert msg name as the uppermost base struct
 
         print("IDataAccessServiceWriteRequest request;")
