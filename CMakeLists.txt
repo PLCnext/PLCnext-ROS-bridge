@@ -32,6 +32,7 @@ find_package(std_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(gRPC CONFIG REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SetIO.msg"
@@ -45,6 +46,17 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 # C++ stuff
 include_directories(include)
 
+set (WILDCARD_SOURCE *.cpp *.cc)
+set (WILDCARD_HEADER *.h *.hpp *.hxx)
+file(GLOB_RECURSE Sources CONFIGURE_DEPENDS
+    include/${PROJECT_NAME}/grpc_generated/${WILDCARD_SOURCE}
+    include/${PROJECT_NAME}/${WILDCARD_SOURCE}
+)
+
+file(GLOB_RECURSE Headers CONFIGURE_DEPENDS
+    include/${PROJECT_NAME}/generated_code/${WILDCARD_HEADER}
+    include/${PROJECT_NAME}/${WILDCARD_HEADER}
+)
 add_executable(phoenix_bridge_node src/phoenix_bridge_node.cpp)
 add_dependencies(phoenix_bridge_node cog)
 ament_target_dependencies(phoenix_bridge_node

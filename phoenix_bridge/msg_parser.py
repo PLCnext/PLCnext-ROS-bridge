@@ -9,8 +9,8 @@ TypesDict = {
     "STRUCT"  : "CT_Struct",
     "float64" : "CT_Real64",
     "double"  : "CT_Real64",
-    "int32"   : "CT_DInt",
-    "uint32"   : "CT_UDInt"
+    "int32"   : "CT_Int32",
+    "uint32"   : "CT_Uint32"
     }
 
 # Get grpc type for given cpp type
@@ -114,12 +114,13 @@ if __name__ == '__main__':
         print("----------"+node.header_name+"---------------")
         # locate does a lexical cast from a string to a type that can be found in sys.path
         fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
-        fields.insert(0,(node.header_name.replace("/","_"), 0, "STRUCT")) # Insert msg name as the uppermost base struct
+        write_item_name = node.header_name.replace("/","_")
+        fields.insert(0,(write_item_name, 0, "STRUCT")) # Insert msg name as the uppermost base struct
 
         print("IDataAccessServiceWriteRequest request;")
-        print("::Arp::Plc::Gds::Services::Grpc::WriteItem* {}= request.add_data();".format(node.header_name.replace("/","_")))
-        print("{}->set_portname(\"Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist\");".format(node.header_name.replace("/","_")))
-        print("{}->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);".format(node.header_name.replace("/","_")))
+        print("::Arp::Plc::Gds::Services::Grpc::WriteItem* {}= request.add_data();".format(write_item_name))
+        print("{}->set_portname(\"Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist\");".format(write_item_name))
+        print("{}->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);".format(write_item_name))
         print("")
 
         for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
@@ -128,12 +129,27 @@ if __name__ == '__main__':
             typ = fields[ind][2]
 
             var_name = fields[ind][0].replace(".","_")
-            grpc_typ = get_grpc_type(fields[ind][2])
+            grpc_typ = get_grpc_type(typ)
             upper = get_upper_struct(fields[:ind], lvl-1) # slice till current index, look for first higher struct
 
-            print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_value()->mutable_structvalue()->add_structelements();"
-                .format(var_name, upper))
-            print("{}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
+            # Line 1 of boilerplate code
+            if upper == write_item_name:
+                print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_value()->mutable_structvalue()->add_structelements();"
+                    .format(var_name, upper))
+            else:
+                print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_structvalue()->add_structelements();"
+                    .format(var_name, upper))
+
+            # Line 2 of boilerplate code
+            if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
+                print("//SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW")
+            else:
+                print("{}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
+            
+            # Line 3 of boilerplate code
             if typ != "STRUCT":
-                print("{}->set_{}value({});".format(var_name, typ, nam))
+                if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
+                    print("//SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW")
+                else:
+                    print("{}->set_{}value({});".format(var_name, typ, nam))
             print("")
