@@ -15,6 +15,14 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set (TOOLCHAIN "/opt/pxc/sdks/AXCF3152/2022.0")
+set (ARPVERSION "2022.0.5")
+set (TARGETNAME "AXCF3152")
+
+set (CMAKE_TOOLCHAIN_FILE ${TOOLCHAIN}/toolchain.cmake CACHE STRING "PLCnext toolchain file")
+set (ARP_TOOLCHAIN_ROOT ${TOOLCHAIN} CACHE STRING "PLCnext toolchain root directory")
+set (ARP_DEVICE ${TARGETNAME} CACHE STRING "PLCnext target device name")
+
 add_custom_target(
  cog ALL
  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -48,16 +56,17 @@ include_directories(include)
 
 set (WILDCARD_SOURCE *.cpp *.cc)
 set (WILDCARD_HEADER *.h *.hpp *.hxx)
-file(GLOB_RECURSE Sources CONFIGURE_DEPENDS
-    include/${PROJECT_NAME}/grpc_generated/${WILDCARD_SOURCE}
+file(GLOB_RECURSE Sources
     include/${PROJECT_NAME}/${WILDCARD_SOURCE}
 )
-
-file(GLOB_RECURSE Headers CONFIGURE_DEPENDS
-    include/${PROJECT_NAME}/generated_code/${WILDCARD_HEADER}
+file(GLOB_RECURSE Headers 
     include/${PROJECT_NAME}/${WILDCARD_HEADER}
 )
-add_executable(phoenix_bridge_node src/phoenix_bridge_node.cpp)
+
+add_executable(phoenix_bridge_node src/phoenix_bridge_node.cpp
+                                    ${Headers} 
+                                    ${Sources})
+target_link_libraries(phoenix_bridge_node  gRPC::gpr gRPC::grpc gRPC::grpc++)
 add_dependencies(phoenix_bridge_node cog)
 ament_target_dependencies(phoenix_bridge_node
                             rclcpp
@@ -66,11 +75,31 @@ ament_target_dependencies(phoenix_bridge_node
                             geometry_msgs)
 
 add_executable(phoenix_io_services_node src/phoenix_io_services_node.cpp
-                                        src/phoenix_io_services.cpp)
+                                        src/phoenix_io_services.cpp
+                                        ${Headers} 
+                                        ${Sources})
 add_dependencies(phoenix_io_services_node ${PROJECT_NAME})
+target_link_libraries(phoenix_io_services_node  gRPC::gpr gRPC::grpc gRPC::grpc++)
 rosidl_target_interfaces(phoenix_io_services_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 ament_target_dependencies(phoenix_io_services_node
                             rclcpp)
+
+if (rclcpp_FOUND)
+  target_include_directories(phoenix_bridge_node
+     PUBLIC
+     $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
+  )
+  target_include_directories(phoenix_io_services_node
+     PUBLIC
+     $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
+     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
+  )
+endif()
 
 install(TARGETS
   phoenix_bridge_node
