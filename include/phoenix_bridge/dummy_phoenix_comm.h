@@ -20,15 +20,22 @@ template <typename T>
 class DummyPhoenixComm
 {
 public:
-  DummyPhoenixComm() {}
+  DummyPhoenixComm();
   bool sendToPLC(const std::string instance_path, const T& data);
   bool getFromPLC(const std::string instance_path, T& data);
   void init(const std::string address);
 
 private:
   /// Communication layer specific objects. For gRPC this would be grpc::grpc::Channel, grpc::grpc::Context etc..
+  std::unique_ptr<IDataAccessService::Stub> stub_;
 
 };
+
+template<typename T> inline
+DummyPhoenixComm<T>::DummyPhoenixComm()
+{
+
+}
 
 /**
  * @brief Send data to the PLC. Could be to gRPC server.
@@ -41,10 +48,27 @@ template<typename T> inline
 bool DummyPhoenixComm<T>::sendToPLC(const std::string instance_path, const T &data)
 {
   (void) data;
-  // Dummy statement to confirm the subscriber in the bridge is working
-  std::cout << "Sent data "
-//            << data
-            << " to PLC at datapath " << instance_path <<  std::endl;
+  IDataAccessServiceWriteRequest request;
+  
+  // Instance path in demo = "Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist"
+  ::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object = request.add_data();
+  grpc_object->set_portname(instance_path);
+  grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+  conversions::packWriteItem(grpc_object, data); 
+
+  ClientContext context;
+  IDataAccessServiceWriteResponse reply;
+  Status status = stub_->Write(&context, request, &reply);
+
+  if (status.ok()) {
+      return true;
+  }
+  else {
+      std::cout << status.error_code() << ": " << status.error_message()
+                << std::endl;
+      return false;
+  }
   return true;
 }
 
@@ -60,8 +84,7 @@ bool DummyPhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
 {
   (void) instance_path;
   (void) data;
-  T grpc_obj;
-  conversions::castToGrpcObject<T>(data, grpc_obj);
+  
   return true;
 }
 
@@ -72,6 +95,7 @@ bool DummyPhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
 template<typename T> inline
 void DummyPhoenixComm<T>::init(const std::string address)
 {
-  (void) address;
+  // Example address = unix:/run/plcnext/grpc.sock. Read from parameter file during cosntruction.
+  stub_ = IDataAccessService::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
 }
 #endif // DUMMY_PHOENIX_COMM_H

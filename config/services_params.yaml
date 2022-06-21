@@ -3,5 +3,5 @@
 phoenix_services:
   ros__parameters:
     grpc:
-      address: "0.0.0.0"
+      address: "unix:/run/plcnext/grpc.sock"
       type: "tcp"

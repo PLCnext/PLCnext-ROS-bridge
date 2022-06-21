@@ -55,6 +55,7 @@ void BridgeType<T>::init()
   this->getPortParams();
 
   /// Initialise communication layer
+  RCLCPP_INFO_STREAM(this->get_logger(),"Initialising gRCP channel @" << this->get_parameter("grpc.address").as_string());
   comm_.init(this->get_parameter("grpc.address").as_string());
 
   /// Spawn pubs

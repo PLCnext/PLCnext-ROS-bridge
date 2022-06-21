@@ -114,15 +114,8 @@ if __name__ == '__main__':
         print("----------"+node.header_name+"---------------")
         # locate does a lexical cast from a string to a type that can be found in sys.path
         fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
-        write_item_name = node.header_name.replace("/","_")
-        fields.insert(0,(write_item_name, 0, "STRUCT")) # Insert msg name as the uppermost base struct
-
-        print("IDataAccessServiceWriteRequest request;")
-        print("::Arp::Plc::Gds::Services::Grpc::WriteItem* {}= request.add_data();".format(write_item_name))
-        print("{}->set_portname(\"Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist\");".format(write_item_name))
-        print("{}->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);".format(write_item_name))
+        fields.insert(0,("grpc_object", 0, "STRUCT")) #  Insert the received grpc_object as the uppermost base struct
         print("")
-
         for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
             nam = fields[ind][0]
             lvl = fields[ind][1] 
@@ -133,7 +126,7 @@ if __name__ == '__main__':
             upper = get_upper_struct(fields[:ind], lvl-1) # slice till current index, look for first higher struct
 
             # Line 1 of boilerplate code
-            if upper == write_item_name:
+            if upper == "grpc_object":
                 print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_value()->mutable_structvalue()->add_structelements();"
                     .format(var_name, upper))
             else:

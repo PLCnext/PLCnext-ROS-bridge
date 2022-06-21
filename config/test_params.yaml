@@ -6,48 +6,48 @@
 odom_bridge:
   ros__parameters:
     grpc:
-      address: "0.0.0.0"
+      address: "unix:/run/plcnext/grpc.sock"
       type: "tcp"
     msg_type: "nav_msgs/msg/Odom" # Include header filename is derived from this in lower case. Scope resolution is derived from this as well.
     header_name: "nav_msgs/msg/odometry" # Optional if include header filename is different from msg type name. Do not include the ".hpp" part
     publishers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
       topics: [pub_odom_1, pub_odom_2]
-      datapaths: [path_odom_1, path_odom_2]
+      datapaths: [Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.odom_data, Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.odom_data]
       frequencies: [11, 12]
     subscribers:
       topics: [sub_odom_3, sub_odom_4]
-      datapaths: [path_odom_3, path_odom_4]
+      datapaths: [Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.odom_data, Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.odom_data]
       frequencies: [13, 14]
     use_sim_time: false
 
 twist_bridge:
   ros__parameters:
     grpc:
-      address: "0.0.0.0"
+      address: "unix:/run/plcnext/grpc.sock"
       type: "tcp"
     msg_type: "geometry_msgs/msg/Twist"
     publishers:
       topics: [pub_twist1, pub_twist2]
-      datapaths: [path_twist_1, path_twist_2]
+      datapaths: [Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.twist_data, Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.twist_data]
       frequencies: [11, 12]
     subscribers:
       topics: [sub_twist3, sub_twist4]
-      datapaths: [path_twist_3, path_twist_4]
+      datapaths: [Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.twist_data, Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.twist_data]
       frequencies: [13, 14]
     use_sim_time: false
 
 string_bridge:
   ros__parameters:
     grpc:
-      address: "0.0.0.0"
+      address: "unix:/run/plcnext/grpc.sock"
       type: "tcp"
     msg_type: "std_msgs/msg/String"
     publishers:
       topics: [pub_string_1, pub_string_2]
-      datapaths: [path_string_1, path_string_2]
+      datapaths: [Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.string_data, Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.string_data]
       frequencies: [21, 22]
     subscribers:
       topics: [sub_string_3, sub_string_4]
-      datapaths: [path_string_3, path_string_4]
+      datapaths: [Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.string_data, Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.string_data]
       frequencies: [23, 24]
     use_sim_time: false
