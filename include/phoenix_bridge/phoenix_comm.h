@@ -1,26 +1,21 @@
-#ifndef DUMMY_PHOENIX_COMM_H
-#define DUMMY_PHOENIX_COMM_H
+#ifndef PHOENIX_COMM_H
+#define PHOENIX_COMM_H
 
 #include <string>
 #include <iostream>
 
 #include "phoenix_bridge/conversions.hpp"
 
-/// Include whatever is required for the communication layer. For gRPC this would be the headers generated from proto
-
 /**
  * @brief This will form the communication layer for the birdge b/w ROS and PLC.
- *        Could be gRPC/Shared memory/Unix domain sockets
- *        Each bridge type will instantiate one instance of this communication type
- *          (i.e. one gRPC channel per type, or one shared memory file per type etc..)
- * @todo  Should we instead create one instance (gRPC channel/shared mem file/socket) per port (i.e. sub/pub)?
- *        This could be too much traffic?
+ *        Implemented with gRPC
+ *        Each bridge type will instantiate one instance of a gRPC channel per type
  */
 template <typename T>
-class DummyPhoenixComm
+class PhoenixComm
 {
 public:
-  DummyPhoenixComm();
+  PhoenixComm();
   bool sendToPLC(const std::string instance_path, const T& data);
   bool getFromPLC(const std::string instance_path, T& data);
   void init(const std::string address);
@@ -32,7 +27,7 @@ private:
 };
 
 template<typename T> inline
-DummyPhoenixComm<T>::DummyPhoenixComm()
+PhoenixComm<T>::PhoenixComm()
 {
 
 }
@@ -45,7 +40,7 @@ DummyPhoenixComm<T>::DummyPhoenixComm()
  * @return if sending was succesfull
  */
 template<typename T> inline
-bool DummyPhoenixComm<T>::sendToPLC(const std::string instance_path, const T &data)
+bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &data)
 {
   (void) data;
   IDataAccessServiceWriteRequest request;
@@ -80,7 +75,7 @@ bool DummyPhoenixComm<T>::sendToPLC(const std::string instance_path, const T &da
  * @return if retrieval was succesfull
  */
 template<typename T> inline
-bool DummyPhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
+bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
 {
   (void) instance_path;
   (void) data;
@@ -93,9 +88,9 @@ bool DummyPhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
  * @param address Address for the communication layer. Could be IP for gRPC server.
  */
 template<typename T> inline
-void DummyPhoenixComm<T>::init(const std::string address)
+void PhoenixComm<T>::init(const std::string address)
 {
   // Example address = unix:/run/plcnext/grpc.sock. Read from parameter file during cosntruction.
   stub_ = IDataAccessService::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
 }
-#endif // DUMMY_PHOENIX_COMM_H
+#endif // phoenix_comm_H

@@ -2,7 +2,7 @@
 #define PHOENIX_IO_SERVICES_HPP
 
 #include <rclcpp/rclcpp.hpp>
-#include "phoenix_bridge/dummy_phoenix_comm.h"
+#include "phoenix_bridge/phoenix_comm.h"
 #include "phoenix_bridge/msg/set_io.hpp"
 #include "phoenix_bridge/srv/single_get_io.hpp"
 #include "phoenix_bridge/srv/single_set_io.hpp"
@@ -25,8 +25,8 @@ private:
   rclcpp::Service<AnalogIO>::SharedPtr read_analog_service;
   rclcpp::Service<AnalogIO>::SharedPtr write_analog_service;
 
-  DummyPhoenixComm<bool> digital_comm_;
-  DummyPhoenixComm<double> analog_comm_;
+  PhoenixComm<bool> digital_comm_;
+  PhoenixComm<double> analog_comm_;
 
   bool singleSetCB(const std::shared_ptr<SingleSetIO::Request> request,
                    std::shared_ptr<SingleSetIO::Response> response);

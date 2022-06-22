@@ -2,7 +2,7 @@
 #define BRIDGE_TYPE_H
 
 #include "phoenix_bridge/include_types.h"
-#include "phoenix_bridge/dummy_phoenix_comm.h"
+#include "phoenix_bridge/phoenix_comm.h"
 
 #include <vector>
 #include <chrono>
@@ -23,7 +23,7 @@ public:
   void init();
 
 private:
-  DummyPhoenixComm<T> comm_;
+  PhoenixComm<T> comm_;
   std::vector<std::string> pub_topics_, pub_datapaths_;
   std::vector<std::string> sub_topics_, sub_datapaths_;
   std::vector<long int> pub_freqs_, sub_freqs_;
