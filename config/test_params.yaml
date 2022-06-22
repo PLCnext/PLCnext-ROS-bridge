@@ -1,7 +1,7 @@
 # Organise the description file per bridging type
 # Each type can have several pubs and subs
-# The list format per port (i.e. pub/sub) is [topic_name, grpc_instance_path, frequency]
-# See code comments in other headers for more info
+# The values of a given index of the 3 arrays - topics, datapaths and frequencies - are together considered when creating one topic
+#  Ex: publishers.topics[1], publishers.datapaths[1] & publishers.frequencies[1] are together considered to spawn pub[1]
 
 odom_bridge:
   ros__parameters:
@@ -9,7 +9,7 @@ odom_bridge:
       address: "unix:/run/plcnext/grpc.sock"
       type: "tcp"
     msg_type: "nav_msgs/msg/Odom" # Include header filename is derived from this in lower case. Scope resolution is derived from this as well.
-    header_name: "nav_msgs/msg/odometry" # Optional if include header filename is different from msg type name. Do not include the ".hpp" part
+    header_name: "nav_msgs/msg/odometry" # Optional if C++ header include filename is different from msg type name. Do not include the ".hpp" part
     publishers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
       topics: [pub_odom_1, pub_odom_2]
       datapaths: [Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.odom_data, Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist.odom_data]

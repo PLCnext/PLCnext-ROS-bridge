@@ -21,11 +21,15 @@ public:
   void init(const std::string address);
 
 private:
-  /// Communication layer specific objects. For gRPC this would be grpc::grpc::Channel, grpc::grpc::Context etc..
-  std::unique_ptr<IDataAccessService::Stub> stub_;
+  std::unique_ptr<IDataAccessService::Stub> stub_;   /// Stub to access underlying grpc functionality
 
 };
 
+/**
+ * @brief Constructor
+ * 
+ * @tparam T Template type
+ */
 template<typename T> inline
 PhoenixComm<T>::PhoenixComm()
 {
@@ -33,19 +37,18 @@ PhoenixComm<T>::PhoenixComm()
 }
 
 /**
- * @brief Send data to the PLC. Could be to gRPC server.
- * @param instance_path Send data to this path
- * @param data the data to send.
- *        The type is one of the ROS msgs as defined under phoenix_contact/include_types.h
+ * @brief Send data to the PLC through grpc.
+ * @param instance_path Send data to this path in the PLC GDS
+ * @param data the data to send. The type is one of the ROS msgs as defined under phoenix_contact/include_types.h, or a base type.
  * @return if sending was succesfull
+ * @todo Room for improvement? Error catching? Performance optimisation?
  */
 template<typename T> inline
 bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &data)
 {
   (void) data;
   IDataAccessServiceWriteRequest request;
-  
-  // Instance path in demo = "Arp.Plc.Eclr/MainInstance.ROS_2_PLC_Twist"
+
   ::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object = request.add_data();
   grpc_object->set_portname(instance_path);
   grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
@@ -73,6 +76,7 @@ bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &data)
  * @param data Cast and write the received data into this variable.
  *        The type is one of the ROS msgs as defined under phoenix_contact/include_types.h
  * @return if retrieval was succesfull
+ * @todo Include grpc api like the sendToPlc function
  */
 template<typename T> inline
 bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
@@ -84,13 +88,12 @@ bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
 }
 
 /**
- * @brief Initialise the communication layer. Could be creating the gRPC channel from the address
- * @param address Address for the communication layer. Could be IP for gRPC server.
+ * @brief Initialise the communication layer by creating the gRPC channel from the address
+ * @param address Unix socket address of channel 
  */
 template<typename T> inline
 void PhoenixComm<T>::init(const std::string address)
 {
-  // Example address = unix:/run/plcnext/grpc.sock. Read from parameter file during cosntruction.
   stub_ = IDataAccessService::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
 }
 #endif // phoenix_comm_H
