@@ -118,6 +118,7 @@ install(DIRECTORY
 )
 
 if(BUILD_TESTING)
+  # Linting
   find_package(ament_cmake_clang_format REQUIRED)
   find_package(ament_cmake_cpplint REQUIRED)
   find_package(ament_cmake_cppcheck REQUIRED)
@@ -138,6 +139,26 @@ if(BUILD_TESTING)
   ament_cppcheck(${files_to_lint})
   ament_lint_cmake()
   ament_xmllint()
+
+  # Unit testing
+  find_package(ament_cmake_gtest REQUIRED)
+
+  ament_add_gtest(test_conversions test/test_conversions.cpp
+                                    ${Headers}
+                                    ${Sources})
+  target_link_libraries(test_conversions  gRPC::gpr gRPC::grpc gRPC::grpc++)
+  target_include_directories(test_conversions
+      PUBLIC
+      $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
+  )
+  ament_target_dependencies(test_conversions
+                            rclcpp
+                            std_msgs
+                            nav_msgs
+                            geometry_msgs)
 
 endif()
 
