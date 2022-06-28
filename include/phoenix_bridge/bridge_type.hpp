@@ -1,12 +1,14 @@
-#ifndef BRIDGE_TYPE_H
-#define BRIDGE_TYPE_H
+#ifndef PHOENIX_BRIDGE__BRIDGE_TYPE_HPP_
+#define PHOENIX_BRIDGE__BRIDGE_TYPE_HPP_
 
 #include <chrono>
 #include <functional>
+#include <memory>
+#include <string>
 #include <vector>
 
 #include "phoenix_bridge/include_types.h"
-#include "phoenix_bridge/phoenix_comm.h"
+#include "phoenix_bridge/phoenix_comm.hpp"
 
 /**
  * @brief Class to handle creating a bridge per supported ROS msg type
@@ -19,14 +21,14 @@ template <typename T>
 class BridgeType : public rclcpp::Node
 {
 public:
-  BridgeType(std::string node_name);
+  explicit BridgeType(std::string node_name);
   void init();
 
 private:
   PhoenixComm<T> comm_;  /// Communication layer object. Must be separately initialised.
   std::vector<std::string> pub_topics_, pub_datapaths_;  /// Contain captured parameters
   std::vector<std::string> sub_topics_, sub_datapaths_;  /// Contain captured parameters
-  std::vector<long int> pub_freqs_, sub_freqs_;          /// Contain captured parameters
+  std::vector<int64_t> pub_freqs_, sub_freqs_;           /// Contain captured parameters
   std::vector<rclcpp::TimerBase::SharedPtr>
     pub_timers_;  /// Contain spawned publisher timers to hold them in scope
   std::vector<typename rclcpp::Publisher<T>::SharedPtr>
@@ -41,7 +43,7 @@ private:
 
 /**
  * @brief Constructor to create node. Logical init decoupled to allow flexibility.
- * 
+ *
  * @tparam T Template type parameter
  * @param node_name Name of the node
  */
@@ -85,13 +87,13 @@ inline void BridgeType<T>::getPortParams()
   this->declare_parameter("grpc.type");          /// Unused
   this->declare_parameter("msg_type");           /// The type of the topic to create
   this->declare_parameter("publishers.topics");  /// Array of publisher topic names
-  this->declare_parameter(
-    "publishers.datapaths");  /// Array of corresponding instance paths in PLC GDS for the varaible to write to
-  this->declare_parameter(
-    "publishers.frequencies");                    /// Array of corresponding publisher frequencies
+  /// Array of corresponding instance paths in PLC GDS for the varaible to write to
+  this->declare_parameter("publishers.datapaths");
+  /// Array of corresponding publisher frequencies
+  this->declare_parameter("publishers.frequencies");
   this->declare_parameter("subscribers.topics");  /// Array of subscriber topic names
-  this->declare_parameter(
-    "subscribers.datapaths");  /// Array of corresponding instance paths in PLC GDS for the varaible to write to
+  /// Array of corresponding instance paths in PLC GDS for the varaible to write to
+  this->declare_parameter("subscribers.datapaths");
   this->declare_parameter("subscribers.frequencies");  /// Unused
 
   pub_topics_ = this->get_parameter("publishers.topics").as_string_array();
@@ -161,4 +163,4 @@ inline void BridgeType<T>::spawnSubscribers()
   }
 }
 
-#endif  // BRIDGE_TYPE_H
+#endif  // PHOENIX_BRIDGE__BRIDGE_TYPE_HPP_

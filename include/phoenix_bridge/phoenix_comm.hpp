@@ -1,7 +1,8 @@
-#ifndef PHOENIX_COMM_H
-#define PHOENIX_COMM_H
+#ifndef PHOENIX_BRIDGE__PHOENIX_COMM_HPP_
+#define PHOENIX_BRIDGE__PHOENIX_COMM_HPP_
 
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "phoenix_bridge/conversions.hpp"
@@ -26,7 +27,7 @@ private:
 
 /**
  * @brief Constructor
- * 
+ *
  * @tparam T Template type
  */
 template <typename T>
@@ -85,7 +86,7 @@ inline bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T & data
 
 /**
  * @brief Initialise the communication layer by creating the gRPC channel from the address
- * @param address Unix socket address of channel 
+ * @param address Unix socket address of channel
  */
 template <typename T>
 inline void PhoenixComm<T>::init(const std::string address)
@@ -93,4 +94,4 @@ inline void PhoenixComm<T>::init(const std::string address)
   stub_ =
     IDataAccessService::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
 }
-#endif  // phoenix_comm_H
+#endif  // PHOENIX_BRIDGE__PHOENIX_COMM_HPP_

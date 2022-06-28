@@ -1,3 +1,4 @@
+#include <memory>
 #include <rclcpp/rclcpp.hpp>
 
 #include "phoenix_bridge/bridge_type.hpp"
@@ -32,7 +33,7 @@ int main(int argc, char ** argv)
   auto string_bridge = std::make_shared<BridgeType<std_msgs::msg::String>>("string_bridge");
   mte.add_node(string_bridge);
 
-  //[[[end]]]
+  // [[[end]]]
 
   std::cout << "Node starting" << std::endl;
   mte.spin();

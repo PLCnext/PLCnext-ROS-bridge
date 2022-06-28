@@ -1,8 +1,14 @@
 #include "phoenix_bridge/phoenix_io_services.hpp"
 
 #include <functional>
+#include <memory>
+#include <string>
 
-using namespace phoenix_bridge::srv;
+using phoenix_bridge::srv::AnalogIO;
+using phoenix_bridge::srv::BatchGetIO;
+using phoenix_bridge::srv::BatchSetIO;
+using phoenix_bridge::srv::SingleGetIO;
+using phoenix_bridge::srv::SingleSetIO;
 
 PhoenixIOServices::PhoenixIOServices(
   const std::string node_name, const rclcpp::NodeOptions & options)
@@ -73,7 +79,7 @@ bool PhoenixIOServices::batchSetCB(
     return false;
   }
   response->status = true;
-  for (long unsigned int i = 0; i < request->payload.size(); i++) {
+  for (uint64_t i = 0; i < request->payload.size(); i++) {
     response->status =
       digital_comm_.sendToPLC(request->payload[i].datapath, request->payload[i].value);
     if (!response->status) {
@@ -97,7 +103,7 @@ bool PhoenixIOServices::batchGetCB(
   }
   response->status = true;
 
-  for (long unsigned int i = 0; i < request->datapaths.size(); i++) {
+  for (uint64_t i = 0; i < request->datapaths.size(); i++) {
     bool val = true;
     if (!digital_comm_.getFromPLC(request->datapaths[i], val)) {
       response->status = false;

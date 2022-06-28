@@ -119,6 +119,7 @@ install(DIRECTORY
 
 if(BUILD_TESTING)
   find_package(ament_cmake_clang_format REQUIRED)
+  find_package(ament_cmake_cpplint REQUIRED)
 
   set(files_to_lint
     include/${PROJECT_NAME}/bridge_type.hpp
@@ -130,6 +131,7 @@ if(BUILD_TESTING)
   )
 
   ament_clang_format(${files_to_lint})
+  ament_cpplint(${files_to_lint} FILTERS "-legal/copyright,-build/include_order")
 
 endif()
 
