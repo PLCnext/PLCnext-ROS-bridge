@@ -2,13 +2,14 @@
 #define PHOENIX_IO_SERVICES_HPP
 
 #include <rclcpp/rclcpp.hpp>
-#include "phoenix_bridge/phoenix_comm.h"
+
 #include "phoenix_bridge/msg/set_io.hpp"
-#include "phoenix_bridge/srv/single_get_io.hpp"
-#include "phoenix_bridge/srv/single_set_io.hpp"
+#include "phoenix_bridge/phoenix_comm.h"
+#include "phoenix_bridge/srv/analog_io.hpp"
 #include "phoenix_bridge/srv/batch_get_io.hpp"
 #include "phoenix_bridge/srv/batch_set_io.hpp"
-#include "phoenix_bridge/srv/analog_io.hpp"
+#include "phoenix_bridge/srv/single_get_io.hpp"
+#include "phoenix_bridge/srv/single_set_io.hpp"
 
 using namespace phoenix_bridge::srv;
 
@@ -20,7 +21,6 @@ using namespace phoenix_bridge::srv;
 class PhoenixIOServices : public rclcpp::Node
 {
 public:
-
   /**
    * @brief Construct a new Phoenix I O Services:: Phoenix I O Services object
    * 
@@ -30,15 +30,15 @@ public:
   PhoenixIOServices(const std::string node_name, const rclcpp::NodeOptions & options);
 
 private:
-  rclcpp::Service<SingleSetIO>::SharedPtr single_set_service_;   /// Write one DIO
-  rclcpp::Service<SingleGetIO>::SharedPtr single_get_service_;   /// Read one DIO
-  rclcpp::Service<BatchSetIO>::SharedPtr batch_set_service_;   /// Write a batch of DIOs
-  rclcpp::Service<BatchGetIO>::SharedPtr batch_get_service_;   /// Read a batch of DIOs
-  rclcpp::Service<AnalogIO>::SharedPtr read_analog_service;   /// Read one AIO
-  rclcpp::Service<AnalogIO>::SharedPtr write_analog_service;   /// Write one AIO
+  rclcpp::Service<SingleSetIO>::SharedPtr single_set_service_;  /// Write one DIO
+  rclcpp::Service<SingleGetIO>::SharedPtr single_get_service_;  /// Read one DIO
+  rclcpp::Service<BatchSetIO>::SharedPtr batch_set_service_;    /// Write a batch of DIOs
+  rclcpp::Service<BatchGetIO>::SharedPtr batch_get_service_;    /// Read a batch of DIOs
+  rclcpp::Service<AnalogIO>::SharedPtr read_analog_service;     /// Read one AIO
+  rclcpp::Service<AnalogIO>::SharedPtr write_analog_service;    /// Write one AIO
 
   PhoenixComm<bool> digital_comm_;   /// Communication layer object for DIOs
-  PhoenixComm<double> analog_comm_;   /// Communication layer object for AIOs
+  PhoenixComm<double> analog_comm_;  /// Communication layer object for AIOs
 
   /**
    * @brief Callback for the Single set DIO service
@@ -48,9 +48,10 @@ private:
    * @return true If succesfully set
    * @return false If setting failed
    */
-  bool singleSetCB(const std::shared_ptr<SingleSetIO::Request> request,
-                   std::shared_ptr<SingleSetIO::Response> response);
-  
+  bool singleSetCB(
+    const std::shared_ptr<SingleSetIO::Request> request,
+    std::shared_ptr<SingleSetIO::Response> response);
+
   /**
    * @brief Callback for the single get DIO service
    * 
@@ -59,8 +60,9 @@ private:
    * @return true If succesfully retrieved
    * @return false If getting failed
    */
-  bool singleGetCB(const std::shared_ptr<SingleGetIO::Request> request,
-                   std::shared_ptr<SingleGetIO::Response> response);
+  bool singleGetCB(
+    const std::shared_ptr<SingleGetIO::Request> request,
+    std::shared_ptr<SingleGetIO::Response> response);
 
   /**
    * @brief Callback for the Batch set DIO service
@@ -71,9 +73,10 @@ private:
    * @return false If setting failed
    * @todo Replace looped call of single DIO to a single call with arrays of DIOS
    */
-  bool batchSetCB(const std::shared_ptr<BatchSetIO::Request> request,
-                   std::shared_ptr<BatchSetIO::Response> response);
-  
+  bool batchSetCB(
+    const std::shared_ptr<BatchSetIO::Request> request,
+    std::shared_ptr<BatchSetIO::Response> response);
+
   /**
    * @brief Callback for the Batch get DIO service
    * 
@@ -83,8 +86,9 @@ private:
    * @return false If getting failed
    * @todo Replace looped call of single DIO to a single call with arrays of DIOS
  */
-  bool batchGetCB(const std::shared_ptr<BatchGetIO::Request> request,
-                   std::shared_ptr<BatchGetIO::Response> response);
+  bool batchGetCB(
+    const std::shared_ptr<BatchGetIO::Request> request,
+    std::shared_ptr<BatchGetIO::Response> response);
 
   /**
    * @brief Callback for the Single read AIO service
@@ -94,8 +98,8 @@ private:
    * @return true If succesfully retrieved
    * @return false If getting failed
    */
-  bool readAnalogIOCB(const std::shared_ptr<AnalogIO::Request> request,
-                      std::shared_ptr<AnalogIO::Response> response);
+  bool readAnalogIOCB(
+    const std::shared_ptr<AnalogIO::Request> request, std::shared_ptr<AnalogIO::Response> response);
 
   /**
    * @brief Callback for the Single write AIO service
@@ -105,8 +109,8 @@ private:
    * @return true If succesfully written
    * @return false If writing failed
    */
-  bool writeAnalogIOCB(const std::shared_ptr<AnalogIO::Request> request,
-                      std::shared_ptr<AnalogIO::Response> response);
+  bool writeAnalogIOCB(
+    const std::shared_ptr<AnalogIO::Request> request, std::shared_ptr<AnalogIO::Response> response);
 };
 
-#endif // PHOENIX_IO_SERVICES_HPP
+#endif  // PHOENIX_IO_SERVICES_HPP

@@ -1,8 +1,8 @@
 #ifndef PHOENIX_COMM_H
 #define PHOENIX_COMM_H
 
-#include <string>
 #include <iostream>
+#include <string>
 
 #include "phoenix_bridge/conversions.hpp"
 
@@ -16,13 +16,12 @@ class PhoenixComm
 {
 public:
   PhoenixComm();
-  bool sendToPLC(const std::string instance_path, const T& data);
-  bool getFromPLC(const std::string instance_path, T& data);
+  bool sendToPLC(const std::string instance_path, const T & data);
+  bool getFromPLC(const std::string instance_path, T & data);
   void init(const std::string address);
 
 private:
-  std::unique_ptr<IDataAccessService::Stub> stub_;   /// Stub to access underlying grpc functionality
-
+  std::unique_ptr<IDataAccessService::Stub> stub_;  /// Stub to access underlying grpc functionality
 };
 
 /**
@@ -30,10 +29,9 @@ private:
  * 
  * @tparam T Template type
  */
-template<typename T> inline
-PhoenixComm<T>::PhoenixComm()
+template <typename T>
+inline PhoenixComm<T>::PhoenixComm()
 {
-
 }
 
 /**
@@ -43,29 +41,27 @@ PhoenixComm<T>::PhoenixComm()
  * @return if sending was succesfull
  * @todo Room for improvement? Error catching? Performance optimisation?
  */
-template<typename T> inline
-bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &data)
+template <typename T>
+inline bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T & data)
 {
-  (void) data;
+  (void)data;
   IDataAccessServiceWriteRequest request;
 
-  ::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object = request.add_data();
+  ::Arp::Plc::Gds::Services::Grpc::WriteItem * grpc_object = request.add_data();
   grpc_object->set_portname(instance_path);
   grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
 
-  conversions::packWriteItem(grpc_object, data); 
+  conversions::packWriteItem(grpc_object, data);
 
   ClientContext context;
   IDataAccessServiceWriteResponse reply;
   Status status = stub_->Write(&context, request, &reply);
 
   if (status.ok()) {
-      return true;
-  }
-  else {
-      std::cout << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return false;
+    return true;
+  } else {
+    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+    return false;
   }
   return true;
 }
@@ -78,12 +74,12 @@ bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &data)
  * @return if retrieval was succesfull
  * @todo Include grpc api like the sendToPlc function
  */
-template<typename T> inline
-bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
+template <typename T>
+inline bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T & data)
 {
-  (void) instance_path;
-  (void) data;
-  
+  (void)instance_path;
+  (void)data;
+
   return true;
 }
 
@@ -91,9 +87,10 @@ bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T &data)
  * @brief Initialise the communication layer by creating the gRPC channel from the address
  * @param address Unix socket address of channel 
  */
-template<typename T> inline
-void PhoenixComm<T>::init(const std::string address)
+template <typename T>
+inline void PhoenixComm<T>::init(const std::string address)
 {
-  stub_ = IDataAccessService::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
+  stub_ =
+    IDataAccessService::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
 }
-#endif // phoenix_comm_H
+#endif  // phoenix_comm_H

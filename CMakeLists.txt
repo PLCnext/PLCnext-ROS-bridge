@@ -118,8 +118,19 @@ install(DIRECTORY
 )
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  ament_lint_auto_find_test_dependencies()
+  find_package(ament_cmake_clang_format REQUIRED)
+
+  set(files_to_lint
+    include/${PROJECT_NAME}/bridge_type.hpp
+    include/${PROJECT_NAME}/phoenix_comm.h
+    include/${PROJECT_NAME}/phoenix_io_services.hpp
+    src/phoenix_bridge_node.cpp
+    src/phoenix_io_services_node.cpp
+    src/phoenix_io_services.cpp
+  )
+
+  ament_clang_format(${files_to_lint})
+
 endif()
 
 ament_package()

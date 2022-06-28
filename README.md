@@ -13,3 +13,23 @@ Cog can also be manually run by first navigating to the package directory in a t
 $ cd <workspace_folder>/src/phoenix_bridge
 $ cog -r include/phoenix_bridge/conversions.hpp
 ``` 
+
+## Developer Guide
+
+Tests can be manually run as follows:
+1. Build the project: `colcon build --symlink-install`
+2. Run tests: `colcon test`
+3. See results: `colcon test-result --verbose`
+
+Tests shall also be run by CI automatically when code is pushed to gitlab.
+
+### Linting
+
+Only the handwritten non-generated files of this project should be linted, and the generated files should be excluded. The include files are specified in the CMakeLists variable `files_to_lint` in the `if(BUILD_TESTING)` section. For this reason, auto linting is not used.
+
+Linting is done when package tests are invoked, either manually from terminal as described above, or by CI.
+
+Linters added: 
+
+1. `ament_cmake_clang_format`: Checks for clang formatting. Errors can be resolved by invoking the following command from terminal for the file/files/directory with the formatting errors: 
+    * `ament_clang_format --reformat <file/files/directory>`
