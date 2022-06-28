@@ -15,22 +15,22 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-set (TOOLCHAIN "/opt/pxc/sdks/AXCF3152/2022.0")
-set (ARPVERSION "2022.0.5")
-set (TARGETNAME "AXCF3152")
+set(TOOLCHAIN "/opt/pxc/sdks/AXCF3152/2022.0")
+set(ARPVERSION "2022.0.5")
+set(TARGETNAME "AXCF3152")
 
-set (CMAKE_TOOLCHAIN_FILE ${TOOLCHAIN}/toolchain.cmake CACHE STRING "PLCnext toolchain file")
-set (ARP_TOOLCHAIN_ROOT ${TOOLCHAIN} CACHE STRING "PLCnext toolchain root directory")
-set (ARP_DEVICE ${TARGETNAME} CACHE STRING "PLCnext target device name")
+set(CMAKE_TOOLCHAIN_FILE ${TOOLCHAIN}/toolchain.cmake CACHE STRING "PLCnext toolchain file")
+set(ARP_TOOLCHAIN_ROOT ${TOOLCHAIN} CACHE STRING "PLCnext toolchain root directory")
+set(ARP_DEVICE ${TARGETNAME} CACHE STRING "PLCnext target device name")
 
 add_custom_target(
- cog ALL
- WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
- COMMAND echo "Generating bridge types based on config file"
- COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/include_types.h
- COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/conversions.hpp
- COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/src/phoenix_bridge_node.cpp
- COMMENT "COGGING"
+  cog ALL
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMAND echo "Generating bridge types based on config file"
+  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/include_types.h
+  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/conversions.hpp
+  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/src/phoenix_bridge_node.cpp
+  COMMENT "COGGING"
 )
 
 find_package(ament_cmake REQUIRED)
@@ -54,17 +54,17 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 # C++ stuff
 include_directories(include)
 
-set (WILDCARD_SOURCE *.cpp *.cc)
-set (WILDCARD_HEADER *.h *.hpp *.hxx)
+set(WILDCARD_SOURCE *.cpp *.cc)
+set(WILDCARD_HEADER *.h *.hpp *.hxx)
 file(GLOB_RECURSE Sources
     include/${PROJECT_NAME}/${WILDCARD_SOURCE}
 )
-file(GLOB_RECURSE Headers 
+file(GLOB_RECURSE Headers
     include/${PROJECT_NAME}/${WILDCARD_HEADER}
 )
 
 add_executable(phoenix_bridge_node src/phoenix_bridge_node.cpp
-                                    ${Headers} 
+                                    ${Headers}
                                     ${Sources})
 target_link_libraries(phoenix_bridge_node  gRPC::gpr gRPC::grpc gRPC::grpc++)
 add_dependencies(phoenix_bridge_node cog)
@@ -76,7 +76,7 @@ ament_target_dependencies(phoenix_bridge_node
 
 add_executable(phoenix_io_services_node src/phoenix_io_services_node.cpp
                                         src/phoenix_io_services.cpp
-                                        ${Headers} 
+                                        ${Headers}
                                         ${Sources})
 add_dependencies(phoenix_io_services_node ${PROJECT_NAME})
 target_link_libraries(phoenix_io_services_node  gRPC::gpr gRPC::grpc gRPC::grpc++)
@@ -84,20 +84,20 @@ rosidl_target_interfaces(phoenix_io_services_node ${PROJECT_NAME} "rosidl_typesu
 ament_target_dependencies(phoenix_io_services_node
                             rclcpp)
 
-if (rclcpp_FOUND)
+if(rclcpp_FOUND)
   target_include_directories(phoenix_bridge_node
-     PUBLIC
-     $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
-     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
-     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
+      PUBLIC
+      $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
   )
   target_include_directories(phoenix_io_services_node
-     PUBLIC
-     $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
-     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
-     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
+      PUBLIC
+      $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
   )
 endif()
 
@@ -109,7 +109,7 @@ install(TARGETS
 # Python stuff
 ament_python_install_package(${PROJECT_NAME})
 
-install(DIRECTORY 
+install(DIRECTORY
   msg
   srv
   launch
@@ -121,6 +121,8 @@ if(BUILD_TESTING)
   find_package(ament_cmake_clang_format REQUIRED)
   find_package(ament_cmake_cpplint REQUIRED)
   find_package(ament_cmake_cppcheck REQUIRED)
+  find_package(ament_cmake_lint_cmake REQUIRED)
+  find_package(ament_cmake_xmllint REQUIRED)
 
   set(files_to_lint
     include/${PROJECT_NAME}/bridge_type.hpp
@@ -134,6 +136,8 @@ if(BUILD_TESTING)
   ament_clang_format(${files_to_lint})
   ament_cpplint(${files_to_lint} FILTERS "-legal/copyright,-build/include_order")
   ament_cppcheck(${files_to_lint})
+  ament_lint_cmake()
+  ament_xmllint()
 
 endif()
 
