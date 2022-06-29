@@ -46,3 +46,23 @@ Linters added:
 
 4. `ament_cmake_xmllint`: Lints xml files like package.xml. To manually find linting errors, run from terminal in the package directory:
     * `ament_xmllint`
+
+### Unit Testing
+
+Unit tests are added using [gtest](https://github.com/google/googletest) under the `test` folder and declared in cmake as well.
+
+Unit tests added:
+
+1. `test_conversions.cpp`: Test the packWriteItem() and unpackReadItem() functions available in `include/phoenix_bridge/conversions.hpp`.   
+@TODO: - [ ] Fill out the unit tests with meaningful code to manually unpack/pack the grpc_object respectively and test.
+
+
+### Integration Testing
+
+Integration tests are added using [launch_testing]() under the `test`folder and declared in cmake as well.
+
+Integration tests added:
+
+1. `launch_test_bridge.test.py`: Launches the bridge node using the same config as `launch/launch_phoenix_bridge.py` and runs some tests -
+    * `test_node_started()` - Check if the node is correctly started. Ensures the node executes correctly.
+    * `test_topics()` - Checks the the bridge creates all topics as specified.
