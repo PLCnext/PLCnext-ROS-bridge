@@ -6,9 +6,11 @@ Using the following python3 package for code generation: [cog](https://nedbatche
 
 Read the types mentioned in the param file that the user wants to bridge -> generate the required code to spawn these bridges.
 
+> NOTE: The codegen scripts currently only handle fixed length arrays inside ros messages, and skip variable length arrays
+
 CMakeLists.txt has a [custom target](https://github.com/ipa-kut/phoenix_bridge/blob/f3cf41a185e6ff1fad2fad41b6b9e6fd9a187c0c/CMakeLists.txt#L6) to generate the code before the package is built.
 
-Cog can also be manually run by first navigating to the package directory in a terminal and running the command:
+Cog can also be manually run by first navigating to the package directory in a terminal and running the command Ex:
 ```
 $ cd <workspace_folder>/src/phoenix_bridge
 $ cog -r include/phoenix_bridge/write_conversions.hpp
@@ -57,12 +59,16 @@ Unit tests added:
 @TODO: - [ ] Fill out the unit tests with meaningful code to manually unpack/pack the grpc_object respectively and test.
 
 
-### Integration Testing
+### Component Testing
 
-Integration tests are added using [launch_testing]() under the `test`folder and declared in cmake as well.
+Component tests are added using [launch_testing]() under the `test`folder and declared in cmake as well.
 
-Integration tests added:
+Component tests added:
 
 1. `launch_test_bridge.test.py`: Launches the bridge node using the same config as `launch/launch_phoenix_bridge.py` and runs some tests -
-    * `test_node_started()` - Check if the node is correctly started. Ensures the node executes correctly.
+    * `test_node_started()` - Check if the node is correctly started.
     * `test_topics()` - Checks the the bridge creates all topics as specified.
+
+### Integration Testing
+
+Automated integration testing is not yet implemented, but to help manaul testing, some scripts are provided under `test/scripts` to publish random data on default topics.
