@@ -126,21 +126,28 @@ namespace conversions
 
         # Line 2 of boilerplate code
         if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-            cog.outl("(void) {};".format(var_name))
-            cog.outl("//SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW")
+            cog.outl("{}->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);".format(var_name))
         else:
             cog.outl("{}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
 
         # Line 3 of boilerplate code
         if typ != "STRUCT":
           if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-              cog.outl("//SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW")
+            array_var = var_name+"_array"
+            array_typ = typ.split('[')[0] # Get the type of the array
+            cog.outl("::Arp::Type::Grpc::TypeArray* {} = {}->mutable_arrayvalue();".format(array_var, var_name))
+            cog.outl("for (auto datum : data_to_pack.{})".format(nam))
+            cog.outl("{")
+            cog.outl("  ObjectType* elem = {}->add_arrayelements();".format(array_var))
+            cog.outl("  elem->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(get_grpc_type(array_typ)))
+            cog.outl("  elem->set_{}value(datum);".format(array_typ))
+            cog.outl("}")
           else:
-              cog.outl("{}->set_{}value(data_to_pack.{});".format(var_name, typ, nam))
+            cog.outl("{}->set_{}value(data_to_pack.{});".format(var_name, typ, nam))
         cog.outl("")
 
     cog.outl("}")
-    cog.outl(" ")
+    cog.outl("")
   ]]]*/
   template <> inline
   void packWriteItem<nav_msgs::msg::Odometry>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, nav_msgs::msg::Odometry data_to_pack)
@@ -208,9 +215,14 @@ namespace conversions
   pose_pose_orientation_w->set_doublevalue(data_to_pack.pose.pose.orientation.w);
 
   ::Arp::Type::Grpc::ObjectType* pose_covariance = pose_1->mutable_structvalue()->add_structelements();
-  (void) pose_covariance;
-  //SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW
-  //SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW
+  pose_covariance->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);
+  ::Arp::Type::Grpc::TypeArray* pose_covariance_array = pose_covariance->mutable_arrayvalue();
+  for (auto datum : data_to_pack.pose.covariance)
+  {
+    ObjectType* elem = pose_covariance_array->add_arrayelements();
+    elem->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+    elem->set_doublevalue(datum);
+  }
 
   ::Arp::Type::Grpc::ObjectType* twist_1 = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
   twist_1->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
@@ -249,12 +261,17 @@ namespace conversions
   twist_twist_angular_z->set_doublevalue(data_to_pack.twist.twist.angular.z);
 
   ::Arp::Type::Grpc::ObjectType* twist_covariance = twist_1->mutable_structvalue()->add_structelements();
-  (void) twist_covariance;
-  //SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW
-  //SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW
+  twist_covariance->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);
+  ::Arp::Type::Grpc::TypeArray* twist_covariance_array = twist_covariance->mutable_arrayvalue();
+  for (auto datum : data_to_pack.twist.covariance)
+  {
+    ObjectType* elem = twist_covariance_array->add_arrayelements();
+    elem->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+    elem->set_doublevalue(datum);
+  }
 
   }
-   
+
   template <> inline
   void packWriteItem<geometry_msgs::msg::Twist>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, geometry_msgs::msg::Twist data_to_pack)
   {
@@ -289,7 +306,7 @@ namespace conversions
   angular_z->set_doublevalue(data_to_pack.angular.z);
 
   }
-   
+
   template <> inline
   void packWriteItem<std_msgs::msg::String>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, std_msgs::msg::String data_to_pack)
   {
@@ -298,7 +315,7 @@ namespace conversions
   data->set_stringvalue(data_to_pack.data);
 
   }
-   
+
   //[[[end]]]
 
   ///

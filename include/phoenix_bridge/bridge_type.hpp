@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "phoenix_bridge/include_types.h"
@@ -134,9 +135,14 @@ inline void BridgeType<T>::spawnPublishers()
     pub_timers_.push_back(this->create_wall_timer(
       std::chrono::milliseconds(1000 / pub_freqs_[i]), [this, i, pub]() -> void {
         T msg_rcvd;
-        comm_.getFromPLC(pub_datapaths_[i], msg_rcvd);
-        typename T::SharedPtr msg_ptr = std::make_shared<T>(msg_rcvd);
-        pub->publish(msg_rcvd);  /// @todo: is this 0 copy transfer???
+        if (comm_.getFromPLC(pub_datapaths_[i], msg_rcvd)) {
+          typename T::SharedPtr msg_ptr = std::make_shared<T>(std::move(msg_rcvd));
+          pub->publish(msg_rcvd);
+        } else {
+          RCLCPP_ERROR_STREAM(
+            this->get_logger(),
+            sub_topics_[i] << " Failed to send data to PLC at " << sub_datapaths_[i]);
+        }
       }));
   }
 }

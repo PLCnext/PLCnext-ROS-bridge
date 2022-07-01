@@ -170,7 +170,7 @@ if(BUILD_TESTING)
                               nav_msgs
                               geometry_msgs)
 
-  # Integration testing
+  # Component testing
   find_package(launch_testing_ament_cmake)
   add_launch_test(test/launch_test_bridge.test.py)
 

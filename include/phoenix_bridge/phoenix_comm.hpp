@@ -61,10 +61,10 @@ inline bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &
   if (status.ok()) {
     return true;
   } else {
-    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+    std::cout << instance_path << " " << status.error_code() << ": " << status.error_message()
+              << std::endl;
     return false;
   }
-  return true;
 }
 
 /**
@@ -89,7 +89,8 @@ inline bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T & data
     conversions::unpackReadObject(grpc_object, data);
     return true;
   } else {
-    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+    std::cout << instance_path << " " << status.error_code() << ": " << status.error_message()
+              << std::endl;
     return false;
   }
 }

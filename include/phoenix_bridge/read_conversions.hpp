@@ -119,7 +119,16 @@ namespace conversions
         cog.outl("  ObjectType {} = {}.structvalue().structelements({});".format(var_name, upper, child_index))
         if typ != "STRUCT":
             if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                cog.outl("//SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW FOR {}".format(var_name))
+              if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
+                array_size = typ.split('[')[1].split(']')[0] # Extract size part from expected format xx[xx]
+                if array_size == "": # Variable length arrays do not have size specified in the .msg file, skip handling these
+                  # @TODO: Investigate how to parse variable size arrays
+                  cog.outl("// ARRAY OF UNKNOWN SIZE, SKIPPING")
+                else:
+                  cog.outl("  for (size_t i = 0; i < {}; i++)".format(array_size))
+                  cog.outl("  {")
+                  cog.outl("    unpack_to_data.{}[i] = {}.arrayvalue().arrayelements(i).doublevalue();".format(nam,var_name))
+                  cog.outl("  }")
             else:
                 cog.outl("  unpack_to_data.{} = {}.{}value();".format(nam, var_name, typ))
         cog.outl("")
@@ -176,7 +185,10 @@ namespace conversions
     unpack_to_data.pose.pose.orientation.w = pose_pose_orientation_w.doublevalue();
 
     ObjectType pose_covariance = pose_1.structvalue().structelements(1);
-  //SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW FOR pose_covariance
+    for (size_t i = 0; i < 36; i++)
+    {
+      unpack_to_data.pose.covariance[i] = pose_covariance.arrayvalue().arrayelements(i).doublevalue();
+    }
 
     ObjectType twist_1 = grpc_object.structvalue().structelements(3);
 
@@ -205,7 +217,10 @@ namespace conversions
     unpack_to_data.twist.twist.angular.z = twist_twist_angular_z.doublevalue();
 
     ObjectType twist_covariance = twist_1.structvalue().structelements(1);
-  //SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW FOR twist_covariance
+    for (size_t i = 0; i < 36; i++)
+    {
+      unpack_to_data.twist.covariance[i] = twist_covariance.arrayvalue().arrayelements(i).doublevalue();
+    }
 
   }
 

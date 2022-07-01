@@ -142,91 +142,107 @@ def get_upper_struct(fields, level):
         if field[1] == level and field[2] == "STRUCT":
             return field[0]
 
+def preview_write_codegen():
+    import param_parser
+    params = param_parser.ParamParser()
+    for node in params.nodes_:
+        print("----------"+node.header_name+"---------------")
+        # locate does a lexical cast from a string to a type that can be found in sys.path
+        fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
+        fields.insert(0,("grpc_object", 0, "STRUCT")) #  Insert the received grpc_object as the uppermost base struct
+
+        for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
+            nam = fields[ind][0]
+            lvl = fields[ind][1]
+            typ = fields[ind][2]
+
+            var_name = nam.replace(".","_")
+            grpc_typ = get_grpc_type(typ)
+            upper = get_upper_struct(fields[:ind], lvl-1) # slice till current index, look for first higher struct
+
+            # Line 1 of boilerplate code
+            if upper == "grpc_object":
+                print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_value()->mutable_structvalue()->add_structelements();"
+                    .format(var_name, upper))
+            else:
+                print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_structvalue()->add_structelements();"
+                    .format(var_name, upper))
+
+            # Line 2 of boilerplate code
+            if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
+                print("{}->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);".format(var_name))
+            else:
+                print("{}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
+
+            # Line 3 of boilerplate code
+            if typ != "STRUCT":
+                if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
+                    array_var = var_name+"_array"
+                    array_typ = typ.split('[')[0] # Get the type of the array
+                    print("::Arp::Type::Grpc::TypeArray* {} = {}->mutable_arrayvalue();".format(array_var, var_name))
+                    print("for (auto datum : data_to_pack.{})".format(nam))
+                    print("{")
+                    print("  ObjectType* elem = {}->add_arrayelements();".format(array_var))
+                    print("  elem->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(get_grpc_type(array_typ)))
+                    print("  elem->set_{}value(datum);".format(array_typ))
+                    print("}")
+                else:
+                    print("{}->set_{}value({});".format(var_name, typ, nam))
+            print("")
+
+def preview_read_codegen():
+    import param_parser
+    params = param_parser.ParamParser()
+    for node in params.nodes_:
+        print("----------"+node.header_name+"---------------")
+        # locate does a lexical cast from a string to a type that can be found in sys.path
+        fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
+        fields.insert(0,("grpc_object", 0, "STRUCT")) #  Insert the received grpc_object as the uppermost base struct
+
+        parent_dict = {}
+        for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
+            nam = fields[ind][0]
+            lvl = fields[ind][1]
+            typ = fields[ind][2]
+
+            var_name = nam.replace(".","_")
+            upper = get_upper_struct(fields[:ind], lvl-1) # slice till current index, look for first higher struct
+
+            child_index = 0
+            if not upper in parent_dict.keys():
+                parent_dict[upper] = 0
+            else:
+                child_index = parent_dict[upper]
+            parent_dict[upper] += 1
+
+            print("ObjectType {} = {}.structvalue().structelements({});".format(var_name, upper, child_index))
+            if typ != "STRUCT":
+                if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
+                    array_size = typ.split('[')[1].split(']')[0] # Extract size part from expected format xx[xx]
+                    if array_size == "": # Variable length arrays do not have size specified in the .msg file, skip handling these
+                        # @TODO: Investigate how to parse variable size arrays
+                        print("// ARRAY OF UNKNOWN SIZE, SKIPPING")
+                    else:
+                        print("for (size_t i = 0; i < {}; i++))".format(array_size))
+                        print("{")
+                        print("  unpack_to_data.{}[i] = {}.arrayvalue().arrayelements(i).doublevalue();"
+                            .format(nam,var_name))
+                        print("}")
+                else:
+                    print("unpack_to_data.{} = {}.{}value();".format(nam, var_name, typ))
+            print("")
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Program designed to be used by cog codegen. Can be run manually to \
-                                     print to screen what the generated output would look like.")
+                                     preview what the generated output would look like.")
     parser.add_argument("-t", "--type",
                         help="Select which type of codegen output to print: [read, write] ",
                         choices= ["read", "write"], default="read", type= str)
     args = parser.parse_args()
 
     if args.type == "read":
-        import param_parser
-        params = param_parser.ParamParser()
-        for node in params.nodes_:
-            print("----------"+node.header_name+"---------------")
-            # locate does a lexical cast from a string to a type that can be found in sys.path
-            fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
-            fields.insert(0,("grpc_object", 0, "STRUCT")) #  Insert the received grpc_object as the uppermost base struct
-
-            print("")
-            print("ObjectType grpc_object = reply._returnvalue(0).value();")
-            print("")
-
-            parent_dict = {}
-            for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
-                nam = fields[ind][0]
-                lvl = fields[ind][1]
-                typ = fields[ind][2]
-
-                var_name = nam.replace(".","_")
-                grpc_typ = get_grpc_type(typ)
-                upper = get_upper_struct(fields[:ind], lvl-1) # slice till current index, look for first higher struct
-
-                child_index = 0
-                if not upper in parent_dict.keys():
-                    parent_dict[upper] = 0
-                else:
-                    child_index = parent_dict[upper]
-                parent_dict[upper] += 1
-
-                print("ObjectType {} = {}.structvalue().structelements({});".format(var_name, upper, child_index))
-                if typ != "STRUCT":
-                    if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                        print("//SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW FOR", var_name)
-                    else:
-                        print("unpack_to_data.{} = {}.{}value();".format(nam, var_name, typ))
-                print("")
-
+        preview_read_codegen()
     elif args.type == "write":
-        import param_parser
-        params = param_parser.ParamParser()
-        for node in params.nodes_:
-            print("----------"+node.header_name+"---------------")
-            # locate does a lexical cast from a string to a type that can be found in sys.path
-            fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
-            fields.insert(0,("grpc_object", 0, "STRUCT")) #  Insert the received grpc_object as the uppermost base struct
-
-            for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
-                nam = fields[ind][0]
-                lvl = fields[ind][1]
-                typ = fields[ind][2]
-
-                var_name = nam.replace(".","_")
-                grpc_typ = get_grpc_type(typ)
-                upper = get_upper_struct(fields[:ind], lvl-1) # slice till current index, look for first higher struct
-
-                # Line 1 of boilerplate code
-                if upper == "grpc_object":
-                    print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_value()->mutable_structvalue()->add_structelements();"
-                        .format(var_name, upper))
-                else:
-                    print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_structvalue()->add_structelements();"
-                        .format(var_name, upper))
-
-                # Line 2 of boilerplate code
-                if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                    print("//SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW")
-                else:
-                    print("{}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
-
-                # Line 3 of boilerplate code
-                if typ != "STRUCT":
-                    if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                        print("//SKIPPING ARRAY TYPE ASSIGNMENT FOR NOW")
-                    else:
-                        print("{}->set_{}value({});".format(var_name, typ, nam))
-                print("")
-
+        preview_write_codegen()
     else:
         print("Wrong type chosen")
