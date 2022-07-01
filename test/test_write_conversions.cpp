@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include "phoenix_bridge/conversions.hpp"
+#include "phoenix_bridge/write_conversions.hpp"
 
-TEST(ConversionTests, TestStringMsg)
+TEST(WriteConversionTests, TestStringMsg)
 {
     std::string test_data = "test_msg";
     std::string test_instance_path = "test_path";

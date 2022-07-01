@@ -5,7 +5,8 @@
 #include <memory>
 #include <string>
 
-#include "phoenix_bridge/conversions.hpp"
+#include "phoenix_bridge/read_conversions.hpp"
+#include "phoenix_bridge/write_conversions.hpp"
 
 /**
  * @brief This will form the communication layer for the birdge b/w ROS and PLC.
@@ -45,7 +46,6 @@ inline PhoenixComm<T>::PhoenixComm()
 template <typename T>
 inline bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T & data)
 {
-  (void)data;
   IDataAccessServiceWriteRequest request;
 
   ::Arp::Plc::Gds::Services::Grpc::WriteItem * grpc_object = request.add_data();
@@ -68,20 +68,30 @@ inline bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &
 }
 
 /**
- * @brief Get data from the PLC. Could be from gRPC server
- * @param instance_path Get data from gRPC server at this address
+ * @brief Get data from the PLC through the gRPC server
+ * @param instance_path Get data from the PLC GDS at this address
  * @param data Cast and write the received data into this variable.
- *        The type is one of the ROS msgs as defined under phoenix_contact/include_types.h
+ *        The type is one of the ROS msgs as defined under phoenix_contact/include_types.h or a basic type
  * @return if retrieval was succesfull
- * @todo Include grpc api like the sendToPlc function
  */
 template <typename T>
 inline bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T & data)
 {
-  (void)instance_path;
-  (void)data;
+  IDataAccessServiceReadRequest request;
+  ClientContext context;
+  IDataAccessServiceReadResponse reply;
 
-  return true;
+  request.add_portnames(instance_path);
+  Status status = stub_->Read(&context, request, &reply);
+
+  if (status.ok()) {
+    ObjectType grpc_object = reply._returnvalue(0).value();
+    conversions::unpackReadObject(grpc_object, data);
+    return true;
+  } else {
+    std::cout << status.error_code() << ": " << status.error_message() << std::endl;
+    return false;
+  }
 }
 
 /**

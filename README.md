@@ -11,7 +11,7 @@ CMakeLists.txt has a [custom target](https://github.com/ipa-kut/phoenix_bridge/b
 Cog can also be manually run by first navigating to the package directory in a terminal and running the command:
 ```
 $ cd <workspace_folder>/src/phoenix_bridge
-$ cog -r include/phoenix_bridge/conversions.hpp
+$ cog -r include/phoenix_bridge/write_conversions.hpp
 ```
 
 ## Developer Guide
@@ -53,7 +53,7 @@ Unit tests are added using [gtest](https://github.com/google/googletest) under t
 
 Unit tests added:
 
-1. `test_conversions.cpp`: Test the packWriteItem() and unpackReadItem() functions available in `include/phoenix_bridge/conversions.hpp`.   
+1. `test_conversions.cpp`: Test the packWriteItem() and unpackReadItem() functions available in `include/phoenix_bridge/write_conversions.hpp`.   
 @TODO: - [ ] Fill out the unit tests with meaningful code to manually unpack/pack the grpc_object respectively and test.
 
 

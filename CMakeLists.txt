@@ -28,7 +28,8 @@ add_custom_target(
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND echo "Generating bridge types based on config file"
   COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/include_types.h
-  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/conversions.hpp
+  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/read_conversions.hpp
+  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/write_conversions.hpp
   COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/src/phoenix_bridge_node.cpp
   COMMENT "COGGING"
 )
@@ -127,7 +128,7 @@ if(BUILD_TESTING)
 
   set(files_to_lint
     include/${PROJECT_NAME}/bridge_type.hpp
-    include/${PROJECT_NAME}/phoenix_comm.h
+    include/${PROJECT_NAME}/phoenix_comm.hpp
     include/${PROJECT_NAME}/phoenix_io_services.hpp
     src/phoenix_bridge_node.cpp
     src/phoenix_io_services_node.cpp
@@ -143,22 +144,31 @@ if(BUILD_TESTING)
   # Unit testing
   find_package(ament_cmake_gtest REQUIRED)
 
-  ament_add_gtest(test_conversions test/test_conversions.cpp
-                                    ${Headers}
-                                    ${Sources})
-  target_link_libraries(test_conversions  gRPC::gpr gRPC::grpc gRPC::grpc++)
-  target_include_directories(test_conversions
-      PUBLIC
-      $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
-  )
-  ament_target_dependencies(test_conversions
-                            rclcpp
-                            std_msgs
-                            nav_msgs
-                            geometry_msgs)
+  ament_add_gtest(test_write_conversions test/test_write_conversions.cpp ${Headers} ${Sources})
+  target_link_libraries(test_write_conversions  gRPC::gpr gRPC::grpc gRPC::grpc++)
+  target_include_directories(test_write_conversions PUBLIC
+                              $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>)
+  ament_target_dependencies(test_write_conversions
+                              rclcpp
+                              std_msgs
+                              nav_msgs
+                              geometry_msgs)
+
+  ament_add_gtest(test_read_conversions test/test_read_conversions.cpp ${Headers} ${Sources})
+  target_link_libraries(test_read_conversions  gRPC::gpr gRPC::grpc gRPC::grpc++)
+  target_include_directories(test_read_conversions PUBLIC
+                              $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>)
+  ament_target_dependencies(test_read_conversions
+                              rclcpp
+                              std_msgs
+                              nav_msgs
+                              geometry_msgs)
 
   # Integration testing
   find_package(launch_testing_ament_cmake)

@@ -62,7 +62,6 @@ class TestGoodProcess(unittest.TestCase):
         """
         Check if all the topics defined in the param file have been created
         """
-        proc_output.assertWaitFor('Node starting', timeout=10, stream='stdout', process=node_bridge)
         topics_and_types = self.node.get_topic_names_and_types()
 
         current_topics = []
