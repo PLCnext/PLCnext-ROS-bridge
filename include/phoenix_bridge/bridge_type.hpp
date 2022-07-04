@@ -37,7 +37,7 @@ private:
   std::vector<typename rclcpp::Subscription<T>::SharedPtr>
     subs_;  /// Contain spawned subscribers to hold them in scope
 
-  void getPortParams();
+  bool getPortParams();
   void spawnPublishers();
   void spawnSubscribers();
 };
@@ -60,7 +60,7 @@ inline BridgeType<T>::BridgeType(std::string node_name) : Node(node_name)
 template <typename T>
 inline void BridgeType<T>::init()
 {
-  this->getPortParams();
+  if (!this->getPortParams()) return;
 
   /// Initialise communication layer
   RCLCPP_INFO_STREAM(
@@ -81,7 +81,7 @@ inline void BridgeType<T>::init()
  * @param port_vector Save all the read param data into a vector of PortParams
  */
 template <typename T>
-inline void BridgeType<T>::getPortParams()
+inline bool BridgeType<T>::getPortParams()
 {
   /// @todo Try catch everything
   this->declare_parameter("grpc.address");       /// Channel address
@@ -97,14 +97,20 @@ inline void BridgeType<T>::getPortParams()
   this->declare_parameter("subscribers.datapaths");
   this->declare_parameter("subscribers.frequencies");  /// Unused
 
-  pub_topics_ = this->get_parameter("publishers.topics").as_string_array();
-  pub_datapaths_ = this->get_parameter("publishers.datapaths").as_string_array();
-  pub_freqs_ = this->get_parameter("publishers.frequencies").as_integer_array();
+  try {
+    pub_topics_ = this->get_parameter("publishers.topics").as_string_array();
+    pub_datapaths_ = this->get_parameter("publishers.datapaths").as_string_array();
+    pub_freqs_ = this->get_parameter("publishers.frequencies").as_integer_array();
 
-  sub_topics_ = this->get_parameter("subscribers.topics").as_string_array();
-  sub_datapaths_ = this->get_parameter("subscribers.datapaths").as_string_array();
-  sub_freqs_ = this->get_parameter("subscribers.frequencies").as_integer_array();
-
+    sub_topics_ = this->get_parameter("subscribers.topics").as_string_array();
+    sub_datapaths_ = this->get_parameter("subscribers.datapaths").as_string_array();
+    sub_freqs_ = this->get_parameter("subscribers.frequencies").as_integer_array();
+  } catch (rclcpp::exceptions::ParameterNotDeclaredException & exception) {
+    RCLCPP_WARN_STREAM(
+      this->get_logger(),
+      "Some parameters not declared, skipping bridge construction: " << exception.what());
+    return false;
+  }
   /// The sizes of all 3 publisher arrays should be equal, since the data corresponds per index
   if (!((pub_topics_.size() == pub_datapaths_.size()) &&
         (pub_topics_.size() == pub_freqs_.size()))) {
@@ -117,6 +123,7 @@ inline void BridgeType<T>::getPortParams()
     RCLCPP_ERROR_STREAM(this->get_logger(), "Subscriber array sizes not equal!!");
     rclcpp::shutdown();
   }
+  return true;
 }
 
 /**
@@ -136,7 +143,6 @@ inline void BridgeType<T>::spawnPublishers()
       std::chrono::milliseconds(1000 / pub_freqs_[i]), [this, i, pub]() -> void {
         T msg_rcvd;
         if (comm_.getFromPLC(pub_datapaths_[i], msg_rcvd)) {
-          typename T::SharedPtr msg_ptr = std::make_shared<T>(std::move(msg_rcvd));
           pub->publish(msg_rcvd);
         } else {
           RCLCPP_ERROR_STREAM(
