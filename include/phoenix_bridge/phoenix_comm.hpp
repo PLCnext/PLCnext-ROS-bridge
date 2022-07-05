@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include "phoenix_bridge/include_types.h"
 #include "phoenix_bridge/read_conversions.hpp"
 #include "phoenix_bridge/write_conversions.hpp"
 
@@ -61,8 +62,8 @@ inline bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &
   if (status.ok()) {
     return true;
   } else {
-    std::cout << instance_path << " " << status.error_code() << ": " << status.error_message()
-              << std::endl;
+    RCLCPP_WARN_STREAM_ONCE(
+      rclcpp::get_logger(instance_path), status.error_code() << ": " << status.error_message());
     return false;
   }
 }
@@ -89,8 +90,8 @@ inline bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T & data
     conversions::unpackReadObject(grpc_object, data);
     return true;
   } else {
-    std::cout << instance_path << " " << status.error_code() << ": " << status.error_message()
-              << std::endl;
+    RCLCPP_WARN_STREAM_ONCE(
+      rclcpp::get_logger(instance_path), status.error_code() << ": " << status.error_message());
     return false;
   }
 }

@@ -84,33 +84,28 @@ template <typename T>
 inline bool BridgeType<T>::getPortParams()
 {
   /// @todo Try catch everything
-  this->declare_parameter("grpc.address");       /// Channel address
-  this->declare_parameter("grpc.type");          /// Unused
-  this->declare_parameter("msg_type");           /// The type of the topic to create
-  this->declare_parameter("publishers.topics");  /// Array of publisher topic names
+  this->declare_parameter("grpc.address", "unix:/run/plcnext/grpc.sock");  /// Channel address
+  this->declare_parameter("grpc.type", "");                                /// Unused
+  this->declare_parameter("msg_type", "");  /// The type of the topic to create
+  this->declare_parameter(
+    "publishers.topics", std::vector<std::string>());  /// Array of publisher topic names
   /// Array of corresponding instance paths in PLC GDS for the varaible to write to
-  this->declare_parameter("publishers.datapaths");
+  this->declare_parameter("publishers.datapaths", std::vector<std::string>());
   /// Array of corresponding publisher frequencies
-  this->declare_parameter("publishers.frequencies");
-  this->declare_parameter("subscribers.topics");  /// Array of subscriber topic names
+  this->declare_parameter("publishers.frequencies", std::vector<int64_t>());
+  this->declare_parameter(
+    "subscribers.topics", std::vector<std::string>());  /// Array of subscriber topic names
   /// Array of corresponding instance paths in PLC GDS for the varaible to write to
-  this->declare_parameter("subscribers.datapaths");
-  this->declare_parameter("subscribers.frequencies");  /// Unused
+  this->declare_parameter("subscribers.datapaths", std::vector<std::string>());
+  this->declare_parameter("subscribers.frequencies", std::vector<int64_t>());  /// Unused
 
-  try {
-    pub_topics_ = this->get_parameter("publishers.topics").as_string_array();
-    pub_datapaths_ = this->get_parameter("publishers.datapaths").as_string_array();
-    pub_freqs_ = this->get_parameter("publishers.frequencies").as_integer_array();
+  pub_topics_ = this->get_parameter("publishers.topics").as_string_array();
+  pub_datapaths_ = this->get_parameter("publishers.datapaths").as_string_array();
+  pub_freqs_ = this->get_parameter("publishers.frequencies").as_integer_array();
 
-    sub_topics_ = this->get_parameter("subscribers.topics").as_string_array();
-    sub_datapaths_ = this->get_parameter("subscribers.datapaths").as_string_array();
-    sub_freqs_ = this->get_parameter("subscribers.frequencies").as_integer_array();
-  } catch (rclcpp::exceptions::ParameterNotDeclaredException & exception) {
-    RCLCPP_WARN_STREAM(
-      this->get_logger(),
-      "Some parameters not declared, skipping bridge construction: " << exception.what());
-    return false;
-  }
+  sub_topics_ = this->get_parameter("subscribers.topics").as_string_array();
+  sub_datapaths_ = this->get_parameter("subscribers.datapaths").as_string_array();
+  sub_freqs_ = this->get_parameter("subscribers.frequencies").as_integer_array();
   /// The sizes of all 3 publisher arrays should be equal, since the data corresponds per index
   if (!((pub_topics_.size() == pub_datapaths_.size()) &&
         (pub_topics_.size() == pub_freqs_.size()))) {
@@ -145,9 +140,9 @@ inline void BridgeType<T>::spawnPublishers()
         if (comm_.getFromPLC(pub_datapaths_[i], msg_rcvd)) {
           pub->publish(msg_rcvd);
         } else {
-          RCLCPP_ERROR_STREAM(
+          RCLCPP_ERROR_STREAM_ONCE(
             this->get_logger(),
-            sub_topics_[i] << " Failed to send data to PLC at " << sub_datapaths_[i]);
+            sub_topics_[i] << " Failed to get data from PLC at " << sub_datapaths_[i]);
         }
       }));
   }
@@ -167,7 +162,7 @@ inline void BridgeType<T>::spawnSubscribers()
       subs_.push_back(this->create_subscription<T>(
         sub_topics_[i], 10, [this, i](const typename T::SharedPtr msg) -> void {
           if (!comm_.sendToPLC(sub_datapaths_[i], *msg.get()))
-            RCLCPP_ERROR_STREAM(
+            RCLCPP_ERROR_STREAM_ONCE(
               this->get_logger(),
               sub_topics_[i] << " Failed to send data to PLC at " << sub_datapaths_[i]);
         }));

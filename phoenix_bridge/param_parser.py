@@ -49,7 +49,7 @@ def getResolvedTypeName(typename: str):
         return result
 
 class ParamParser(object):
-    """  
+    """
     Class to access parameter parsing functionality. Constructor does parsing and saves resulting model in varialbe nodes_.
     nodes_ is a list of the bridge types found.
     @todo: Find a way to pass the param file as an argument instead. Challenging to do with cog at build time.
@@ -61,42 +61,70 @@ class ParamParser(object):
         ## Trim subdirectories from path. Needed depending on where this module is called from.
         with open(os.path.join(os.getcwd().replace('/scripts', '').replace('/phoenix_bridge',''), 'phoenix_bridge/config/test_params.yaml')) as yamfile:
             params_ = yaml.load(yamfile, Loader = yaml.FullLoader)
-        
+
         for node in params_:
-            pub_topics = params_[node]['ros__parameters']['publishers']['topics']
-            pub_datapaths = params_[node]['ros__parameters']['publishers']['datapaths']
-            pub_frequencies = params_[node]['ros__parameters']['publishers']['frequencies']
-            sub_topics = params_[node]['ros__parameters']['subscribers']['topics']
-            sub_datapaths = params_[node]['ros__parameters']['subscribers']['datapaths']
-            sub_frequencies = params_[node]['ros__parameters']['subscribers']['frequencies']
-            
-            if ((size(pub_topics) != size (pub_datapaths)) or (size(pub_topics) != size (pub_frequencies))):
-                print(node, "PUBLISHER PARAMS NOT OF EQUAL SIZE!!")
+            # Safe get ros__parameters
+            if "ros__parameters" not in params_[node]:
+                print(node, ": Improperly formatted ros2 param yaml, must contain field ros__parametrs!! Exiting")
                 return
+            rosparams = params_[node]['ros__parameters']
 
-            if ((size(sub_topics) != size (sub_datapaths)) or (size(sub_topics) != size (sub_frequencies))):
-                print(node, "SUBSCRIBER PARAMS NOT OF EQUAL SIZE!!")
+            # Safe get msg_type and header_name rosparam
+            if "msg_type" not in rosparams:
+                print(node, ": msg_type not defined as a rosparam!! Exiting")
                 return
+            msg_type = rosparams['msg_type']
 
-            publishers = []
-            for x in range(size(pub_topics)):
-                publishers.append(Port(pub_topics[x], pub_datapaths[x], pub_frequencies[x]))
-            
-            subscribers = []
-            for x in range(size(pub_topics)):
-                subscribers.append(Port(sub_topics[x], sub_datapaths[x], sub_frequencies[x]))
-            
-            if "header_name" in params_[node]['ros__parameters']:
-                header_name = params_[node]['ros__parameters']['header_name']
+            if "header_name" in rosparams:
+                header_name = rosparams['header_name']
             else:
-                header_name = params_[node]['ros__parameters']['msg_type'].lower()
-                
-            self.nodes_.append(BridgeType(node, 
-                                   params_[node]['ros__parameters']['msg_type'], 
+                header_name = rosparams['msg_type'].lower()
+
+            # Safe get grpc params
+            if "grpc" not in rosparams or "address" not in rosparams['grpc']:
+                print(node, ": grpc.address not defined under rosaparams!! Exiting")
+                return
+            grpc_address = rosparams['grpc']['address']
+            grpc_type = rosparams['grpc']['type'] if "type" in rosparams['grpc'] else ""
+
+            # Safe get publisher params
+            publishers = rosparams['publishers']  if "publishers" in rosparams else dict()
+            if publishers is not None:
+                pub_topics = publishers['topics'] if "topics" in publishers else []
+                pub_datapaths = publishers['datapaths'] if "datapaths" in publishers else []
+                pub_frequencies = publishers['frequencies'] if "frequencies" in publishers else []
+                if ((size(pub_topics) != size (pub_datapaths)) or (size(pub_topics) != size (pub_frequencies))):
+                    print(node, "PUBLISHER PARAMS NOT OF EQUAL SIZE!! Exiting")
+                    return
+            else:
+                pub_topics = pub_datapaths = pub_frequencies = []
+
+            # Safe get subscriber params
+            subscribers = rosparams['subscribers'] if "subscribers" in rosparams else dict()
+            if subscribers is not None:
+                sub_topics = subscribers['topics'] if "topics" in subscribers else []
+                sub_datapaths = subscribers['datapaths'] if "datapaths" in subscribers else []
+                sub_frequencies = subscribers['frequencies'] if "frequencies" in subscribers else []
+                if ((size(sub_topics) != size (sub_datapaths)) or (size(sub_topics) != size (sub_frequencies))):
+                    print(node, "SUBSCRIBER PARAMS NOT OF EQUAL SIZE!! Exiting")
+                    return
+            else:
+                sub_topics = sub_datapaths = sub_frequencies = []
+
+            publishers_list = []
+            for x in range(size(pub_topics)):
+                publishers_list.append(Port(pub_topics[x], pub_datapaths[x], pub_frequencies[x]))
+
+            subscribers_list = []
+            for x in range(size(sub_topics)):
+                subscribers_list.append(Port(sub_topics[x], sub_datapaths[x], sub_frequencies[x]))
+
+            self.nodes_.append(BridgeType(node,
+                                   msg_type,
                                    header_name,
-                                   CommPort(params_[node]['ros__parameters']['grpc']['address'], params_[node]['ros__parameters']['grpc']['type']), 
-                                   publishers, 
-                                   subscribers))
+                                   CommPort(grpc_address, grpc_type),
+                                   publishers_list,
+                                   subscribers_list))
 
 
 if __name__ == "__main__":
