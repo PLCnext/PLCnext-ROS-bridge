@@ -16,7 +16,7 @@
  * We create one BridgeType for odom, one for twist, etc...
  * A given bridge type can have several "ports" under it, where a port is a publisher or a subscriber
  * This way we can have several pub/subs for odom, several pub/subs for twist etc..
- * The number of ports is derived from config/test_params.yaml
+ * The number of ports is derived from config/interface_description.yaml
  */
 template <typename T>
 class BridgeType : public rclcpp::Node

@@ -11,7 +11,7 @@ def generate_launch_description():
     config_bridge = os.path.join(
         get_package_share_directory('phoenix_bridge'),
         'config',
-        'test_params.yaml'
+        'interface_description.yaml'
         )
 
     # Configuration file for the io services

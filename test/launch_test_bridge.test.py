@@ -20,7 +20,7 @@ import yaml
 config_bridge = os.path.join(
     ament_index_python.get_package_prefix('phoenix_bridge'),
     'share/phoenix_bridge/config',
-    'test_params.yaml'
+    'interface_description.yaml'
     )
 
 node_bridge=Node(

@@ -59,7 +59,7 @@ class ParamParser(object):
     def __init__(self):
         """ Parse the param file from a hardcoded path. Save resulting model in nodes_ variable """
         ## Trim subdirectories from path. Needed depending on where this module is called from.
-        with open(os.path.join(os.getcwd().replace('/scripts', '').replace('/phoenix_bridge',''), 'phoenix_bridge/config/test_params.yaml')) as yamfile:
+        with open(os.path.join(os.getcwd().replace('/scripts', '').replace('/phoenix_bridge',''), 'phoenix_bridge/config/interface_description.yaml')) as yamfile:
             params_ = yaml.load(yamfile, Loader = yaml.FullLoader)
 
         for node in params_:
