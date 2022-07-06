@@ -51,7 +51,6 @@ inline bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &
 
   ::Arp::Plc::Gds::Services::Grpc::WriteItem * grpc_object = request.add_data();
   grpc_object->set_portname(instance_path);
-  grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
 
   conversions::packWriteItem(grpc_object, data);
 

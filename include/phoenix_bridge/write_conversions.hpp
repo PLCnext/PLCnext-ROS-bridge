@@ -63,9 +63,8 @@ namespace conversions
   template <> inline
   void packWriteItem<double>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, double data_to_pack)
   {
-    ::Arp::Type::Grpc::ObjectType* data = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    data->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
-    data->set_doublevalue(data_to_pack);
+    grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+    grpc_object->mutable_value()->set_doublevalue(data_to_pack);
   }
 
   /**
@@ -76,9 +75,8 @@ namespace conversions
   template <> inline
   void packWriteItem<bool>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, bool data_to_pack)
   {
-    ::Arp::Type::Grpc::ObjectType* data = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    data->set_typecode(::Arp::Type::Grpc::CoreType::CT_Boolean);
-    data->set_boolvalue(data_to_pack);
+    grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Boolean);
+    grpc_object->mutable_value()->set_doublevalue(data_to_pack);
   }
 
   ///
@@ -107,6 +105,8 @@ namespace conversions
                       getResolvedTypeName(node.header_name)))
 
     cog.outl("{")
+    cog.outl("grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);")
+    cog.outl("")
     for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
         nam = fields[ind][0]
         lvl = fields[ind][1]
@@ -152,6 +152,8 @@ namespace conversions
   template <> inline
   void packWriteItem<nav_msgs::msg::Odometry>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, nav_msgs::msg::Odometry data_to_pack)
   {
+  grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
   ::Arp::Type::Grpc::ObjectType* header_1 = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
   header_1->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
 
@@ -275,6 +277,8 @@ namespace conversions
   template <> inline
   void packWriteItem<geometry_msgs::msg::Twist>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, geometry_msgs::msg::Twist data_to_pack)
   {
+  grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
   ::Arp::Type::Grpc::ObjectType* linear_1 = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
   linear_1->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
 
@@ -310,6 +314,8 @@ namespace conversions
   template <> inline
   void packWriteItem<std_msgs::msg::String>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, std_msgs::msg::String data_to_pack)
   {
+  grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
   ::Arp::Type::Grpc::ObjectType* data = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
   data->set_typecode(::Arp::Type::Grpc::CoreType::CT_String);
   data->set_stringvalue(data_to_pack.data);
