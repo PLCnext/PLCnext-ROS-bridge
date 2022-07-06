@@ -11,7 +11,7 @@ class MinimalPublisher(Node):
 
     def __init__(self):
         super().__init__('odom_publisher')
-        self.publisher_ = self.create_publisher(Odometry, '/sub_odom_3', 10)
+        self.publisher_ = self.create_publisher(Odometry, '/sub_odom_1', 10)
         timer_period = 1  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 

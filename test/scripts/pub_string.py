@@ -11,7 +11,7 @@ class MinimalPublisher(Node):
 
     def __init__(self):
         super().__init__('twist_publisher')
-        self.publisher_ = self.create_publisher(String, '/sub_string_3', 10)
+        self.publisher_ = self.create_publisher(String, '/sub_string_1', 10)
         timer_period = 1  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
