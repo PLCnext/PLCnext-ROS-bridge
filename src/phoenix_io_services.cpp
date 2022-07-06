@@ -59,7 +59,7 @@ bool PhoenixIOServices::singleGetCB(
   const std::shared_ptr<SingleGetIO::Request> request,
   std::shared_ptr<SingleGetIO::Response> response)
 {
-  RCLCPP_INFO_STREAM(this->get_logger(), "Single set service called");
+  RCLCPP_INFO_STREAM(this->get_logger(), "Single get service called");
   bool val;
   response->status = digital_comm_.getFromPLC(request->datapath, val);
   response->value = val;
