@@ -76,7 +76,7 @@ namespace conversions
   void packWriteItem<bool>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, bool data_to_pack)
   {
     grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Boolean);
-    grpc_object->mutable_value()->set_doublevalue(data_to_pack);
+    grpc_object->mutable_value()->set_boolvalue(data_to_pack);
   }
 
   ///
