@@ -72,3 +72,13 @@ Component tests added:
 ### Integration Testing
 
 Automated integration testing is not yet implemented, but to help manaul testing, some scripts are provided under `test/scripts` to publish random data on default topics.
+
+## CI/CD
+
+Consists of 3 phases:
+
+1. Build and test the package using [industrial_ci](https://github.com/ros-industrial/industrial_ci). This runs all tests as configured in CMakeLists.txt
+
+2. Doxygen documentation generation. The generated HTML documentation is available as downloadable artefacts and can also be served externally.
+
+3. Dockerization builds docker images ONLY FOR TAGGED COMMITS. The commit tag is chosen as the tag for the image as well (make sure to update package.xml as well). Therefore, in order to trigger CD and build the images, tag the commit with the version of the package and push with tags. The created images are available in the [gitlab container repository.](https://gitlab.cc-asp.fraunhofer.de/ipa326/phoenix_bridge/container_registry/)
