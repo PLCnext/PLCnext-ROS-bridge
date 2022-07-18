@@ -3,6 +3,7 @@
 
 #include "phoenix_bridge/include_types.h"
 #include "phoenix_bridge/params_struct.hpp"
+#include "phoenix_bridge/phoenix_comm.hpp"
 
 #include <vector>
 #include <thread>
@@ -26,7 +27,7 @@ private:
   std::vector<PortParams> pub_params_; /// Parameters of publishers to create
   std::vector<PortParams> sub_params_; /// Parameters of subscribers to create
   void publisherFunction(const PortParams port);
-  DummyPhoenixComm<T> comm_;
+  PhoenixComm<T> comm_;
   ros::NodeHandle nh_;
   std::vector<ros::Subscriber> subscribers_;
 };
