@@ -1,0 +1,33 @@
+communication:
+  grpc:
+    address: "0.0.0.0"
+    type: tcp
+
+# Organise the description file per bridging type
+# Each type can have several pubs and subs
+# The list format per port (i.e. pub/sub) is [topic_name, grpc_instance_path, frequency]
+# See code comments in other headers for more info
+
+nav_msgs/Odometry/2: # This is the identifying string used in init of type
+  publishers: # Parsing this is hard coded
+    - [pub_odom_1, datapath_odom_1, 10] # Parsed to save as PortParams struct
+    - [pub_odom_2, datapath_odom_2, 20]
+  subscribers: # Parsing this is hard coded
+    - [sub_odom_1, datapath_odom_3, 10]
+    - [sub_odom_2, datapath_odom_4, 20]
+
+geometry_msgs/Twist:
+  publishers:
+    - [pub_twist_1, datapath__twist_1, 30]
+    - [pub_twist_2, datapath_twist_2, 40]
+  subscribers:
+    - [sub_twist_1, datapath_twist_3, 30]
+    - [sub_twist_2, datapath_twist_4, 40]
+
+std_msgs/String:
+  publishers:
+    - [pub_string_1, datapath__string_1, 50]
+    - [pub_string_2, datapath_string_2, 60]
+  subscribers:
+    - [sub_string_1, datapath_string_3, 50]
+    - [sub_string_2, datapath_string_4, 60]

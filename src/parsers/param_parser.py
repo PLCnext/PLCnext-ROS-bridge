@@ -2,14 +2,15 @@
 
 import yaml
 import os
+import typing
 
 class ParamParser(object):
     params_ = {}
     keys_ = []
-    types_ = []
+    types_ : typing.Tuple[str, str] = []
 
     def __init__(self):
-        with open(os.path.join(os.getcwd().replace('/src/param_parser', ''), 'config/test_params.yaml')) as yamfile:
+        with open(os.path.join(os.getcwd().replace('/src/param_parser', ''), 'config/interface_description.yaml')) as yamfile:
             params_ = yaml.load(yamfile, Loader = yaml.FullLoader)
         
         for k in params_:
@@ -17,9 +18,13 @@ class ParamParser(object):
             if k != "communication":
                 self.types_.append(k.split("/"))
 
+def header_format(type: typing.Tuple[str, str]):
+    return type[0]+"/"+type[1]
+
+def namespace_format(type: typing.Tuple[str, str]):
+    return type[0]+"::"+type[1]
+
 if __name__ == "__main__":
     obj = ParamParser()
     for type in obj.types_:
-        print("{}/{}".format(type[0], type[1]))
-
-
+        print("{}".format(header_format(type)))
