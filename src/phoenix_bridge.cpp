@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 
 /**
- * @brief Create bridges for each type. Parameter passed is the simple name to lookup in config/test_params.yaml
+ * @brief Create bridges for each type. Parameter passed is the simple name to lookup in config/interface_description.yaml
  */
 PhoenixBridge::PhoenixBridge(ros::NodeHandle nh)
 {

@@ -13,7 +13,7 @@
  * We create one BridgeType for odom, one for twist, etc...
  * A given bridge type can have several "ports" under it, where a port is a publisher or a subscriber
  * This way we can have several pub/subs for odom, several pub/subs for twist etc..
- * The number of ports is derived from config/test_params.yaml
+ * The number of ports is derived from config/interface_description.yaml
  */
 template <typename T>
 class BridgeType
@@ -73,7 +73,7 @@ void BridgeType<T>::init(const std::string param_name, ros::NodeHandle nh)
 }
 
 /**
- * @brief Read the ports to create for the given type as defined by rosparams, typically uploaded from config/test_params.yaml
+ * @brief Read the ports to create for the given type as defined by rosparams, typically uploaded from config/interface_description.yaml
  *        Expect to read a list of lists where the embedded list corresponds
  *          to data fields as defineed by phoenix_contact/params_struct.h
  * @param param_name The fully resolved param path ex: "/odometry/publishers"

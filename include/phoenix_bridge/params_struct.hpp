@@ -4,10 +4,10 @@
 #include <string>
 
 /**
- * @brief The struct to hold the parameters defined per subscriber/pulbisher per datatype in the config/test_params.yaml file
+ * @brief The struct to hold the parameters defined per subscriber/pulbisher per datatype in the config/interface_description.yaml file
  *        Since each datatype can have several pub/subs, we will create a vector of these structs to hold all the data
  *        A "Port" is any one given subscriber or publisher
- *        Each type (such as std_msgs/Bool or geometry_msgs/Twist) can have multiple ports. See config/test_params.yaml
+ *        Each type (such as std_msgs/Bool or geometry_msgs/Twist) can have multiple ports. See config/interface_description.yaml
  */
 struct PortParams
 {
