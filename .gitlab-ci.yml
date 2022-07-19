@@ -1,122 +1,140 @@
-# Build stages
-stages:
-  - container
-  - deploy 
+variables:
+  DOCKER_BUILDKIT: 1
+  DOCKER_TLS_CERTDIR: ""
+  SUFFIX: ""
+  PREFIX: "${CI_REGISTRY_IMAGE}/${CI_PIPELINE_ID}:"
+  BUILDER_PREFIX: "registry.gitlab.cc-asp.fraunhofer.de/ipa326/docker_ros_builder/"
+  BUILDER_SUFFIX: ":latest"
+  ROSINSTALL_CI_JOB_TOKEN: "true"
+  FOLDER: ${CI_JOB_NAME}
+  ROS_DISTRO: ""
+  ROS_DISTROS: noetic foxy
+  NAME: ${CI_JOB_NAME}
+  TARGET_LATEST: ${CI_REGISTRY_IMAGE}/${NAME}:latest
+  TARGET_BRANCH: ${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-}
+  TARGET_RELEASE: ${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_TAG//\//-}
 
-# container:arm:
-#   stage: container
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-#   script:
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"$ci_registry\":{\"username\":\"$ci_registry_user\",\"password\":\"$ci_registry_password\"}}}" > /kaniko/.docker/config.json
-#     - /kaniko/executor 
-#       --context $ci_project_dir 
-#       --dockerfile $ci_project_dir/dockerfile
-#       --destination plcnext-hello-world:${ci_commit_short_sha}
-#       --no-push
-#       --tarpath plcnext-hello-world-${ci_commit_short_sha}.tar
-#     - gzip ./plcnext-hello-world-${ci_commit_short_sha}.tar
-#   allow_failure: false
-#   when: manual
-#   tags:
-#     - shared-runner-kubernetes
-#     - multi-arc
-#   artifacts:
-#     name: "container_arm"
-#     paths:
-#     - ./plcnext-hello-world-${ci_commit_short_sha}.tar.gz
-#     when: on_success
-#     expire_in: 10 minutes
+services:
+  - docker:dind
 
-#container:x86:
-container:
-  stage: container
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor 
-      --context $CI_PROJECT_DIR 
-      --dockerfile $CI_PROJECT_DIR/dockerfile_x86
-      --destination plcnext-hello-world:${CI_COMMIT_SHORT_SHA}
-      --no-push
-      --tarPath plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar
-    - gzip ./plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar
-  allow_failure: false
-  when: manual
+default:
   tags:
-    - shared-runner-kubernetes
-    - multi-arc
-  artifacts:
-    name: "container_x86"
-    paths:
-    - ./plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar.gz
-    when: on_success
-    expire_in: 10 minutes
+    - docker-build
 
-## BUILD TestContainer and APP for ARM targets
-# deploy:arm:
-#   stage: deploy
-#   image: 
-#     name: debian:bookworm
-#   before_script:
-#     - apt-get update  
-#     - apt-get install --yes squashfs-tools rpm
-#   script:
-#     - tar -tf plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.tar.gz --wildcards 'sha256*' >> ./image.id
-#     - sed -i 's/[^:]*:\(.*\)/\1/' image.id
-#     - mkdir app/images
-#     - cp ./plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.tar.gz app/images/plcnext-hello-world.tar.gz
-#     - >
-#       sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
-#     - >
-#       sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
-#     - >
-#       sed -i "s/§§TARGETS§§/AXC F 2152,AXC F 1152/g" ./app/app_info.json
-#     - chmod +x app/initscript.sh
-#     - mksquashfs app plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.app -force-uid 1001 -force-gid 1002
-#   dependencies:
-#     -  container:arm
-#   artifacts:
-#     name: "${CI_PROJECT_PATH_SLUG}-${CI_COMMIT_SHORT_SHA}"
-#     paths:
-#       - ./*.app
-#     when: on_success
-#     expire_in: 30 minutes
+stages:
+  - check_ros_distro
+  - phoenix_dependencies
+  - phoenix_bridge
+  - publish
+  - cleanup
 
-## BUILD TestContainer and APP for x86 targets
-#deploy:x86:
-deploy:
-  stage: deploy
-  image: 
-    name: debian:bookworm
-  before_script:
-    - apt-get update  
-    - apt-get install --yes squashfs-tools rpm
+.common:
+  docker_login:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+prepare:
+  stage: check_ros_distro
   script:
-    - tar -tf plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar.gz --wildcards 'sha256*' >> ./image.id
-    - sed -i 's/[^:]*:\(.*\)/\1/' image.id
-    - mkdir app/images
-    - cp ./plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar.gz app/images/plcnext-hello-world.tar.gz
-    - >
-      sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
-    - >
-      sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
-    - >
-      sed -i "s/§§TARGETS§§/AXC F 3152,EPC 1522,EPC 1502/g" ./app/app_info.json
-    - chmod +x app/initscript.sh
-    - mksquashfs app plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.app -force-uid 1001 -force-gid 1002
-  dependencies:
-    #-  container:x86
-    -   container
+    - |
+      for distro in $ROS_DISTROS; do
+        raw=${CI_COMMIT_REF_NAME//\//-}
+        if [[ "$distro" = "${raw%%-*}" ]] || [[ "$distro" = "${CI_COMMIT_REF_NAME}" ]] || [[ "$distro" = "${raw%%_*}" ]]; then
+          echo "found"
+          echo "ROS_DISTRO=$distro" >> build.env
+          break
+        fi
+      done;
+      if [[ $ROS_DISTRO = "" ]]; then
+        exit 1
+        echo "Not found"
+      fi
   artifacts:
-    name: "${CI_PROJECT_PATH_SLUG}-${CI_COMMIT_SHORT_SHA}"
-    paths:
-      - ./*.app
-    when: on_success
-    expire_in: 30 minutes
+    reports:
+      dotenv: build.env
 
+.build:
+  stage: ${CI_JOB_NAME}
+  before_script:
+    - !reference [.common, docker_login]
+  script:
+    - >
+      TARGET=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-};
+      docker build --cache-from $TARGET --cache-from $TARGET_LATEST --cache-from $TARGET_BRANCH
+      --build-arg SUFFIX
+      --build-arg PREFIX
+      --build-arg BUILDER_PREFIX
+      --build-arg BUILDER_SUFFIX
+      --build-arg ROS_DISTRO
+      --build-arg ROSINSTALL_CI_JOB_TOKEN=$ROSINSTALL_CI_JOB_TOKEN
+      --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN
+      -t ${PREFIX}${NAME}${SUFFIX} ${FOLDER}
+  after_script:
+    - docker push ${PREFIX}${NAME}${SUFFIX}
+  variables:
+    NAME: ${CI_JOB_NAME}_${ROS_DISTRO}
+  needs:
+    - prepare
+
+phoenix_dependencies:
+  extends: .build
+  stage: phoenix_dependencies
+
+phoenix_bridge:
+  extends: .build
+  variables:
+    FOLDER: .
+  stage: phoenix_bridge
+  needs:
+    - prepare
+    - phoenix_dependencies
+
+.publish:
+  stage: publish
+  before_script:
+    - !reference [.common, docker_login]
+    - docker pull ${PREFIX}${NAME}${SUFFIX}
+  script:
+    - |
+      TARGET=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-}
+      if [ "$CI_COMMIT_REF_NAME" = "main" ]; then
+        TARGET=$TARGET_LATEST
+      fi
+      if [ "$CI_COMMIT_REF_NAME" = "${ROS_DISTRO}/devel" ]; then
+        TARGET=$TARGET_LATEST
+      fi
+      if [ $CI_COMMIT_TAG ]; then
+        TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_TAG//\//-}
+        TARGET=$TARGET_RELEASE
+      fi
+      docker tag ${PREFIX}${NAME}${SUFFIX} ${TARGET} && docker push ${TARGET}
+  needs:
+    - prepare
+    - phoenix_dependencies
+    - phoenix_bridge
+
+publish:phoenix_dependencies:
+  extends: .publish
+  variables:
+    NAME: phoenix_dependencies_${ROS_DISTRO}
+
+publish:phoenix_bridge:
+  extends: .publish
+  variables:
+    NAME: phoenix_bridge_${ROS_DISTRO}
+
+cleanup_job:
+  image: alpine:latest
+  stage: cleanup
+  before_script:
+    - apk add --no-cache curl
+    - apk add jq
+  script:
+    - >
+      curl -H "PRIVATE-TOKEN: $API_TOKEN" "https://gitlab.cc-asp.fraunhofer.de/api/v4/projects/${CI_PROJECT_ID}/registry/repositories" > output.json
+    - >
+      image_id=$(jq --arg CI_PIPELINE_ID "$CI_PIPELINE_ID" '.[] | select(.name==$CI_PIPELINE_ID) | .id' output.json)
+    - |
+      if [[ ! -z "$image_id" ]]; then
+        curl --request DELETE -H "PRIVATE-TOKEN: $API_TOKEN" "https://gitlab.cc-asp.fraunhofer.de/api/v4/projects/${CI_PROJECT_ID}/registry/repositories/${image_id}"
+      fi
+  when: always
