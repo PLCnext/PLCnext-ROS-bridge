@@ -1,7 +1,7 @@
 #ifndef PHOENIX_BRIDGE_HPP
 #define PHOENIX_BRIDGE_HPP
 
-#include "phoenix_bridge/bridge_type.hpp"
+#include "phoenix_bridge/bridge_type.h"
 
 #include <vector>
 #include <string>

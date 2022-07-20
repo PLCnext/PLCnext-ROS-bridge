@@ -1,4 +1,4 @@
-#include "phoenix_bridge/phoenix_io_services.hpp"
+#include "phoenix_bridge/phoenix_io_services.h"
 #include <ros/ros.h>
 
 int main(int argc, char **argv)

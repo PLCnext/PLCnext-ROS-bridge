@@ -13,7 +13,7 @@ Read the types mentioned in the param file that the user wants to bridge -> gene
 
 Template based generation for the following files:   
 * `include/phoenix_bridge/include_types.h`
-*  `include/phoenix_bridge/phoenix_bridge.hpp`
+*  `include/phoenix_bridge/phoenix_bridge.h`
 * `src/phoenix_bridge/include_types.cpp`
 
 The templates are written into these files. CMakeLists.txt has a [custom target](https://github.com/ipa-kut/phoenix_bridge/blob/f3cf41a185e6ff1fad2fad41b6b9e6fd9a187c0c/CMakeLists.txt#L6) to generate the code before the package is built.

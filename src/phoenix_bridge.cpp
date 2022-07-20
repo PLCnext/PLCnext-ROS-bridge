@@ -1,5 +1,5 @@
-#include "phoenix_bridge/phoenix_bridge.hpp"
-#include "phoenix_bridge/params_struct.hpp"
+#include "phoenix_bridge/phoenix_bridge.h"
+#include "phoenix_bridge/params_struct.h"
 
 #include <ros/ros.h>
 

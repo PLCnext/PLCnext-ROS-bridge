@@ -1,4 +1,4 @@
-#include "phoenix_bridge/phoenix_bridge.hpp"
+#include "phoenix_bridge/phoenix_bridge.h"
 #include <ros/ros.h>
 
 int main(int argc, char **argv)
