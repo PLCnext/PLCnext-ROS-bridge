@@ -47,6 +47,7 @@ void BridgeType<T>::init(const std::string param_name, ros::NodeHandle nh)
   {
     ROS_ERROR_STREAM(ros::this_node::getName() << " Could not find grpc address param");
   }
+  ROS_INFO_STREAM(ros::this_node::getName() << ": Initialised gRPC channel @" << address);
 
   /// Initialise communication layer
   comm_.init(address);
@@ -66,7 +67,8 @@ void BridgeType<T>::init(const std::string param_name, ros::NodeHandle nh)
                                     [this, port](const boost::shared_ptr<const T> msg) ->
                                     void {
                                       if(!comm_.sendToPLC(port.datapath_, *msg.get()))
-                                        ROS_ERROR_STREAM(port.name_ << " Failed to send data to PLC at " << port.datapath_);
+                                        ROS_ERROR_STREAM_ONCE(ros::this_node::getName() << ": "
+                                        << port.name_ << " Failed to send data to PLC at " << port.datapath_);
                                     }
                                    ));
   }
@@ -98,7 +100,8 @@ void BridgeType<T>::getPortParams(const std::string param_name, std::vector<Port
   }
   for (auto ele:port_vector)
   {
-    ROS_INFO_STREAM(param_name << ": " << ele.name_ << " " << ele.datapath_ << " " << ele.frequency_);
+    ROS_INFO_STREAM(ros::this_node::getName() << ": "
+        <<param_name << ": " << ele.name_ << " " << ele.datapath_ << " " << ele.frequency_);
   }
 }
 
@@ -114,8 +117,13 @@ void BridgeType<T>::publisherFunction(const PortParams port)
   {
     ros::spinOnce();
     T msg_rcvd;
-    comm_.getFromPLC(port.datapath_, msg_rcvd);
-    pub.publish(boost::make_shared<T>(msg_rcvd)); /// 0 copy transfer
+    if (comm_.getFromPLC(port.datapath_, msg_rcvd))
+    {
+      pub.publish(boost::make_shared<T>(msg_rcvd)); /// 0 copy transfer
+    } else {
+      ROS_ERROR_STREAM_ONCE(ros::this_node::getName() << ": "
+        << port.name_ << " Failed to get data from PLC at " << port.datapath_);
+    }
     ros::Rate(port.frequency_).sleep();
   }
 }

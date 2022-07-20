@@ -12,7 +12,7 @@ class ParamParser(object):
     def __init__(self):
         with open(os.path.join(os.getcwd().replace('/src/param_parser', ''), 'config/interface_description.yaml')) as yamfile:
             params_ = yaml.load(yamfile, Loader = yaml.FullLoader)
-        
+
         for k in params_:
             self.keys_.append(k)
             if k != "communication":
