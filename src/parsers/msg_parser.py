@@ -222,15 +222,26 @@ def preview_read_codegen():
         print("----------"+header_format(a_type)+"---------------")
         # Locate does a lexical cast of a string to a discoverable python type
         fields = decompose_ros_msg_type(locate(a_type[0]+".msg."+a_type[1]))
-        fields.insert(0,("grpc_object", 0, "STRUCT")) #  Insert the received grpc_object as the uppermost base struct
-
+        fields.insert(0,("grpc_object", 0, "STRUCT")) # Insert the received grpc_object as the uppermost base struct
         parent_dict = {}
+
+        print("template <>")
+        print("inline void unpackReadObject<{}>(const ObjectType &grpc_object, {}& unpack_to_data)"
+                .format(namespace_format(a_type),
+                        namespace_format(a_type)))
+
+        print("{")
         for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
             nam = fields[ind][0]
             lvl = fields[ind][1]
             typ = fields[ind][2]
 
-            var_name = nam.replace(".","_")
+            # Handling special types
+            # @TODO: How to handle time properly? CT_XX? set_XXvalue()??
+            typ = "double" if typ=="float64" else typ
+
+            var_name = fields[ind][0].replace(".","_")
+            grpc_typ = get_grpc_type(fields[ind][2])
             upper = get_upper_struct(fields[:ind], lvl-1) # slice till current index, look for first higher struct
 
             child_index = 0
@@ -240,22 +251,25 @@ def preview_read_codegen():
                 child_index = parent_dict[upper]
             parent_dict[upper] += 1
 
-            print("ObjectType {} = {}.structvalue().structelements({});".format(var_name, upper, child_index))
+            print("  ObjectType {} = {}.structvalue().structelements({});".format(var_name, upper, child_index))
             if typ != "STRUCT":
+                if typ=="time":
+                    print("  //SKIPPING TIME TYPE FOR NOW")
+                    print("")
+                    continue
                 if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                    array_size = typ.split('[')[1].split(']')[0] # Extract size part from expected format xx[xx]
-                    if array_size == "": # Variable length arrays do not have size specified in the .msg file, skip handling these
-                        # @TODO: Investigate how to parse variable size arrays
-                        print("// ARRAY OF UNKNOWN SIZE, SKIPPING")
-                    else:
-                        print("for (size_t i = 0; i < {}; i++))".format(array_size))
-                        print("{")
-                        print("  unpack_to_data.{}[i] = {}.arrayvalue().arrayelements(i).doublevalue();"
-                            .format(nam,var_name))
-                        print("}")
+                    array_typ = typ.split('[')[0] # Get the type of the array
+                    array_typ = "double" if array_typ=="float64" else array_typ
+                    print("  for (int i = 0; i < {}.arrayvalue().arrayelements_size(); i++)".format(var_name))
+                    print("  {")
+                    print("    unpack_to_data.{}[i] = {}.arrayvalue().arrayelements(i).{}value();".format(nam,var_name, array_typ))
+                    print("  }")
                 else:
-                    print("unpack_to_data.{} = {}.{}value();".format(nam, var_name, typ))
+                    print("  unpack_to_data.{} = {}.{}value();".format(nam, var_name, typ))
             print("")
+
+        print("}")
+        print("")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Program designed to be used by cog codegen. Can be run manually to \
