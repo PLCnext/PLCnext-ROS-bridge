@@ -10,6 +10,7 @@ add_custom_target(
  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/include_types.h
  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/phoenix_bridge.hpp
  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/write_conversions.hpp
+ COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/read_conversions.hpp
  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/src/phoenix_bridge.cpp
  COMMENT "COGGING"
 )
@@ -96,4 +97,16 @@ target_include_directories(phoenix_io_services
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/ServiceStubs/Includes>
 )
 
-set(COG_INCLUDE "cog -r ")
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+
+install(DIRECTORY config/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
+
+install(TARGETS ${PROJECT_NAME}_node
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS phoenix_io_services
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
