@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <group ns="ambs">
+
+    <test test-name="gtest_read_test" pkg="phoenix_bridge"
+        type="read_conversion" name="gtest_read_test">
+    </test>
+
+    </group>
+</launch>
