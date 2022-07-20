@@ -1,5 +1,5 @@
-#ifndef PARAMS_STRUCT_H
-#define PARAMS_STRUCT_H
+#ifndef PHOENIX_BRIDGE_PARAMS_STRUCT_H
+#define PHOENIX_BRIDGE_PARAMS_STRUCT_H
 
 #include <string>
 
@@ -11,9 +11,9 @@
  */
 struct PortParams
 {
-  std::string name_; /// Topic name
-  std::string datapath_; /// Path to data objecct corresponding to this port on the PLC
-  int frequency_; /// Frequency for publishing. Not applicable to subscribers (??)
+  std::string name_;  /// Topic name
+  std::string datapath_;  /// Path to data objecct corresponding to this port on the PLC
+  int frequency_;  /// Frequency for publishing. Not applicable to subscribers (??)
   PortParams(std::string name, std::string datapath, int freq):
     name_(name),
     datapath_(datapath),
@@ -21,4 +21,4 @@ struct PortParams
     {}
 };
 
-#endif // PARAMS_STRUCT_H
+#endif  // PHOENIX_BRIDGE_PARAMS_STRUCT_H

@@ -1,5 +1,5 @@
-#ifndef PHOENIX_BRIDGE__PHOENIX_COMM_HPP_
-#define PHOENIX_BRIDGE__PHOENIX_COMM_HPP_
+#ifndef PHOENIX_BRIDGE_PHOENIX_COMM_H
+#define PHOENIX_BRIDGE_PHOENIX_COMM_H
 
 #include <iostream>
 #include <memory>
@@ -20,7 +20,7 @@ class PhoenixComm
 public:
   PhoenixComm();
   bool sendToPLC(const std::string instance_path, const T & data);
-  bool getFromPLC(const std::string instance_path, T & data);
+  bool getFromPLC(const std::string instance_path, T & data);  // NOLINT(runtime/references)
   void init(const std::string address);
 
 private:
@@ -58,9 +58,12 @@ inline bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &
   IDataAccessServiceWriteResponse reply;
   Status status = stub_->Write(&context, request, &reply);
 
-  if (status.ok()) {
+  if (status.ok())
+  {
     return true;
-  } else {
+  }
+  else
+  {
     ROS_WARN_STREAM_ONCE(status.error_code() << ": " << status.error_message());
     return false;
   }
@@ -74,7 +77,7 @@ inline bool PhoenixComm<T>::sendToPLC(const std::string instance_path, const T &
  * @return if retrieval was succesfull
  */
 template <typename T>
-inline bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T & data)
+inline bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T & data)  // NOLINT(runtime/references)
 {
   IDataAccessServiceReadRequest request;
   ClientContext context;
@@ -83,11 +86,14 @@ inline bool PhoenixComm<T>::getFromPLC(const std::string instance_path, T & data
   request.add_portnames(instance_path);
   Status status = stub_->Read(&context, request, &reply);
 
-  if (status.ok()) {
+  if (status.ok())
+  {
     ObjectType grpc_object = reply._returnvalue(0).value();
     conversions::unpackReadObject(grpc_object, data);
     return true;
-  } else {
+  }
+  else
+  {
     ROS_WARN_STREAM_ONCE(status.error_code() << ": " << status.error_message());
     return false;
   }
@@ -103,4 +109,4 @@ inline void PhoenixComm<T>::init(const std::string address)
   stub_ =
     IDataAccessService::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
 }
-#endif  // PHOENIX_BRIDGE__PHOENIX_COMM_HPP_
+#endif  // PHOENIX_BRIDGE_PHOENIX_COMM_H

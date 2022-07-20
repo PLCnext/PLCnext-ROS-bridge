@@ -1,5 +1,5 @@
-#ifndef READ_CONVERSIONS_HPP
-#define READ_CONVERSIONS_HPP
+#ifndef PHOENIX_BRIDGE_READ_CONVERSIONS_H
+#define PHOENIX_BRIDGE_READ_CONVERSIONS_H
 
 #include "phoenix_bridge/include_types.h"
 
@@ -46,7 +46,8 @@ namespace conversions
    * @param unpack_to_data The ros msg data variable into which the read resposne has to be unpacked. Can also be base types.
    */
   template <typename T> inline
-  void unpackReadObject(const ObjectType &grpc_object, T& unpack_to_data)
+  void unpackReadObject(const ObjectType &grpc_object,
+                          T& unpack_to_data)  // NOLINT(runtime/references)
   {
     (void) unpack_to_data;
     (void) grpc_object;
@@ -57,7 +58,8 @@ namespace conversions
    * @brief Bool specialization
    */
   template <>
-  inline void unpackReadObject<bool>(const ObjectType &grpc_object, bool& unpack_to_data)
+  inline void unpackReadObject<bool>(const ObjectType &grpc_object,
+                                      bool& unpack_to_data)  // NOLINT(runtime/references)
   {
     unpack_to_data = grpc_object.boolvalue();
   }
@@ -66,7 +68,8 @@ namespace conversions
    * @brief Double specialization
    */
   template <>
-  inline void unpackReadObject<double>(const ObjectType &grpc_object, double& unpack_to_data)
+  inline void unpackReadObject<double>(const ObjectType &grpc_object,
+                                        double& unpack_to_data)  // NOLINT(runtime/references)
   {
     unpack_to_data = grpc_object.doublevalue();
   }
@@ -271,4 +274,4 @@ namespace conversions
 
 }
 
-#endif // READ_CONVERSIONS_HPP
+#endif // PHOENIX_BRIDGE_READ_CONVERSIONS_H

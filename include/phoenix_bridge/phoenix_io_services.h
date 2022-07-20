@@ -1,5 +1,5 @@
-#ifndef PHOENIXIOSERVICES_HPP
-#define PHOENIXIOSERVICES_HPP
+#ifndef PHOENIX_BRIDGE_PHOENIX_IO_SERVICES_H
+#define PHOENIX_BRIDGE_PHOENIX_IO_SERVICES_H
 
 #include "phoenix_bridge/SetIO.h"
 #include "phoenix_bridge/BatchGetIO.h"
@@ -13,7 +13,7 @@
 class PhoenixIOServices
 {
 public:
-  PhoenixIOServices(ros::NodeHandle nh);
+  explicit PhoenixIOServices(ros::NodeHandle nh);
 
 private:
   ros::ServiceServer batch_set_server;
@@ -23,10 +23,14 @@ private:
   PhoenixComm<bool> comm_;
   ros::NodeHandle nh_;
 
-  bool batchSetCB(phoenix_bridge::BatchSetIO::Request &req, phoenix_bridge::BatchSetIO::Response &res);
-  bool batchGetCB(phoenix_bridge::BatchGetIO::Request &req, phoenix_bridge::BatchGetIO::Response &res);
-  bool singleSetCB(phoenix_bridge::SingleSetIO::Request &req, phoenix_bridge::SingleSetIO::Response &res);
-  bool singleGetCB(phoenix_bridge::SingleGetIO::Request &req, phoenix_bridge::SingleGetIO::Response &res);
+  bool batchSetCB(phoenix_bridge::BatchSetIO::Request &req,  // NOLINT(runtime/references)
+                    phoenix_bridge::BatchSetIO::Response &res);  // NOLINT(runtime/references)
+  bool batchGetCB(phoenix_bridge::BatchGetIO::Request &req,  // NOLINT(runtime/references)
+                    phoenix_bridge::BatchGetIO::Response &res);  // NOLINT(runtime/references)
+  bool singleSetCB(phoenix_bridge::SingleSetIO::Request &req,  // NOLINT(runtime/references)
+                    phoenix_bridge::SingleSetIO::Response &res);  // NOLINT(runtime/references)
+  bool singleGetCB(phoenix_bridge::SingleGetIO::Request &req,  // NOLINT(runtime/references)
+                    phoenix_bridge::SingleGetIO::Response &res);  // NOLINT(runtime/references)
 };
 
-#endif // PHOENIXIOSERVICES_HPP
+#endif  // PHOENIX_BRIDGE_PHOENIX_IO_SERVICES_H

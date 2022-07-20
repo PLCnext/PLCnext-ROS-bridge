@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   message_generation
   roslint
+  rostest
 )
 find_package(gRPC CONFIG REQUIRED)
 
@@ -48,9 +49,12 @@ generate_messages(
 catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS
+    geometry_msgs
     message_runtime
+    nav_msgs
     roscpp
     roslint
+    std_msgs
 )
 
 include_directories(
@@ -104,8 +108,14 @@ target_include_directories(phoenix_io_services
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+
 install(DIRECTORY config/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
+
+install(DIRECTORY src/parsers/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/src/parsers/)
 
 install(TARGETS ${PROJECT_NAME}_node
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -126,8 +136,6 @@ set(files_to_lint
     include/${PROJECT_NAME}/phoenix_bridge.h
     include/${PROJECT_NAME}/phoenix_comm.h
     include/${PROJECT_NAME}/phoenix_io_services.h
-    include/${PROJECT_NAME}/read_conversions.h
-    include/${PROJECT_NAME}/write_conversions.h
     src/phoenix_bridge_node.cpp
     src/phoenix_bridge.cpp
     src/phoenix_io_services_node.cpp

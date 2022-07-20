@@ -1,5 +1,5 @@
-#ifndef PHOENIX_BRIDGE_HPP
-#define PHOENIX_BRIDGE_HPP
+#ifndef PHOENIX_BRIDGE_PHOENIX_BRIDGE_H
+#define PHOENIX_BRIDGE_PHOENIX_BRIDGE_H
 
 #include "phoenix_bridge/bridge_type.h"
 
@@ -12,7 +12,7 @@
 class PhoenixBridge
 {
 public:
-  PhoenixBridge(ros::NodeHandle nh);
+  explicit PhoenixBridge(ros::NodeHandle nh);
 
 private:
   /// Declare all the bridge types to create
@@ -31,7 +31,7 @@ private:
   BridgeType<nav_msgs::Odometry> odometry_bridge_;
   BridgeType<geometry_msgs::Twist> twist_bridge_;
   BridgeType<std_msgs::String> string_bridge_;
-  //[[[end]]]
+  // [[[end]]]
 };
 
-#endif // PHOENIX_BRIDGE_HPP
+#endif  // PHOENIX_BRIDGE_PHOENIX_BRIDGE_H
