@@ -13,7 +13,7 @@ import nav_msgs
 This script parses a ROS msg type to build an internal model that can easily be iterated through
 The functions offered by this script are designed to be used together with the neighbouring script param_parser.py
 Running this script directly from the base package directory like phoenix_bridge/msg_parser.py
-     (after sourcing ROS) shows an example output of what cog could generate into include/phoenix_bridge/read\write_conversions.hpp
+     (after sourcing ROS) shows an example output of what cog could generate into include/phoenix_bridge/read\write_conversions.h
 """
 
 def get_slots_and_types(a_type: dict):

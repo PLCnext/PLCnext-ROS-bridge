@@ -6,8 +6,8 @@
 #include <string>
 
 #include "phoenix_bridge/include_types.h"
-#include "phoenix_bridge/read_conversions.hpp"
-#include "phoenix_bridge/write_conversions.hpp"
+#include "phoenix_bridge/read_conversions.h"
+#include "phoenix_bridge/write_conversions.h"
 
 /**
  * @brief This will form the communication layer for the birdge b/w ROS and PLC.

@@ -6,7 +6,7 @@
 #include "phoenix_bridge/BatchSetIO.h"
 #include "phoenix_bridge/SingleSetIO.h"
 #include "phoenix_bridge/SingleGetIO.h"
-#include "phoenix_bridge/phoenix_comm.hpp"
+#include "phoenix_bridge/phoenix_comm.h"
 
 #include <ros/ros.h>
 

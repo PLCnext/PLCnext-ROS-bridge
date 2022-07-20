@@ -2,8 +2,8 @@
 #define BRIDGE_TYPE_H
 
 #include "phoenix_bridge/include_types.h"
-#include "phoenix_bridge/params_struct.hpp"
-#include "phoenix_bridge/phoenix_comm.hpp"
+#include "phoenix_bridge/params_struct.h"
+#include "phoenix_bridge/phoenix_comm.h"
 
 #include <vector>
 #include <thread>

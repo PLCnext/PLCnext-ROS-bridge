@@ -8,9 +8,9 @@ add_custom_target(
  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
  COMMAND echo "Generating bridge types based on config file"
  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/include_types.h
- COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/phoenix_bridge.hpp
- COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/write_conversions.hpp
- COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/read_conversions.hpp
+ COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/phoenix_bridge.h
+ COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/write_conversions.h
+ COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/read_conversions.h
  COMMAND cog -r ${CMAKE_CURRENT_SOURCE_DIR}/src/phoenix_bridge.cpp
  COMMENT "COGGING"
 )
@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
   message_generation
+  roslint
 )
 find_package(gRPC CONFIG REQUIRED)
 
@@ -46,7 +47,10 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS message_runtime
+  CATKIN_DEPENDS
+    message_runtime
+    roscpp
+    roslint
 )
 
 include_directories(
@@ -55,7 +59,7 @@ include_directories(
 )
 
 set(WILDCARD_SOURCE *.cpp *.cc)
-set(WILDCARD_HEADER *.h *.hpp *.hxx)
+set(WILDCARD_HEADER *.h *.h *.hxx)
 file(GLOB_RECURSE Sources
     include/${PROJECT_NAME}/${WILDCARD_SOURCE}
 )
@@ -110,3 +114,24 @@ install(TARGETS ${PROJECT_NAME}_node
 install(TARGETS phoenix_io_services
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+if(CATKIN_ENABLE_TESTING)
+    find_package(rostest REQUIRED)
+
+endif()
+
+set(files_to_lint
+    include/${PROJECT_NAME}/bridge_type.h
+    include/${PROJECT_NAME}/params_struct.h
+    include/${PROJECT_NAME}/phoenix_bridge.h
+    include/${PROJECT_NAME}/phoenix_comm.h
+    include/${PROJECT_NAME}/phoenix_io_services.h
+    include/${PROJECT_NAME}/read_conversions.h
+    include/${PROJECT_NAME}/write_conversions.h
+    src/phoenix_bridge_node.cpp
+    src/phoenix_bridge.cpp
+    src/phoenix_io_services_node.cpp
+    src/phoenix_io_services.cpp
+  )
+set(ROSLINT_CPP_OPTS "--filter=-legal/copyright")
+roslint_cpp(${files_to_lint})
