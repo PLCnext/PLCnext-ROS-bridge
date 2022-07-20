@@ -2,7 +2,6 @@
 
 import sys
 import argparse
-import rospy
 
 from pydoc import locate
 from numpy import size
@@ -150,51 +149,71 @@ def get_upper_struct(fields, level):
 
 def preview_write_codegen():
     from param_parser import ParamParser, header_format, namespace_format
+
     params = ParamParser()
     for a_type in params.types_:
         print("----------"+header_format(a_type)+"---------------")
         # Locate does a lexical cast of a string to a discoverable python type
         fields = decompose_ros_msg_type(locate(a_type[0]+".msg."+a_type[1]))
         fields.insert(0,("grpc_object", 0, "STRUCT")) #  Insert the received grpc_object as the uppermost base struct
+        print("template <> inline")
+        print("void packWriteItem<{}>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, {} data_to_pack)"
+                .format(namespace_format(a_type),
+                        namespace_format(a_type)))
 
+        print("{")
+        print("  grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);")
+        print("")
         for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
             nam = fields[ind][0]
             lvl = fields[ind][1]
             typ = fields[ind][2]
 
-            var_name = nam.replace(".","_")
-            grpc_typ = get_grpc_type(typ)
+            # Handling special types
+            # @TODO: How to handle time properly? CT_XX? set_XXvalue()??
+            typ = "double" if typ=="float64" else typ
+
+            var_name = fields[ind][0].replace(".","_")
+            grpc_typ = get_grpc_type(fields[ind][2])
             upper = get_upper_struct(fields[:ind], lvl-1) # slice till current index, look for first higher struct
 
             # Line 1 of boilerplate code
             if upper == "grpc_object":
-                print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_value()->mutable_structvalue()->add_structelements();"
+                print("  ::Arp::Type::Grpc::ObjectType* {} = {}->mutable_value()->mutable_structvalue()->add_structelements();"
                     .format(var_name, upper))
             else:
-                print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_structvalue()->add_structelements();"
+                print("  ::Arp::Type::Grpc::ObjectType* {} = {}->mutable_structvalue()->add_structelements();"
                     .format(var_name, upper))
 
             # Line 2 of boilerplate code
             if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                print("{}->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);".format(var_name))
+                print("  {}->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);".format(var_name))
             else:
-                print("{}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
+                print("  {}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
 
             # Line 3 of boilerplate code
+            ## Skipping time for now, @TODO: Handle this
+            if typ =="time":
+                print("// SKIPPING TIME TYPE FOR NOW")
+                print("")
+                continue
             if typ != "STRUCT":
                 if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
                     array_var = var_name+"_array"
                     array_typ = typ.split('[')[0] # Get the type of the array
-                    print("::Arp::Type::Grpc::TypeArray* {} = {}->mutable_arrayvalue();".format(array_var, var_name))
-                    print("for (auto datum : data_to_pack.{})".format(nam))
-                    print("{")
-                    print("  ObjectType* elem = {}->add_arrayelements();".format(array_var))
-                    print("  elem->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(get_grpc_type(array_typ)))
-                    print("  elem->set_{}value(datum);".format(array_typ))
-                    print("}")
+                    print("  ::Arp::Type::Grpc::TypeArray* {} = {}->mutable_arrayvalue();".format(array_var, var_name))
+                    print("  for (auto datum : data_to_pack.{})".format(nam))
+                    print("  {")
+                    print("    ObjectType* elem = {}->add_arrayelements();".format(array_var))
+                    print("    elem->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(get_grpc_type(array_typ)))
+                    print("    elem->set_{}value(datum);".format(array_typ))
+                    print("  }")
                 else:
-                    print("{}->set_{}value({});".format(var_name, typ, nam))
+                    print("  {}->set_{}value(data_to_pack.{});".format(var_name, typ, nam))
             print("")
+
+        print("}")
+        print("")
 
 def preview_read_codegen():
     from param_parser import ParamParser, header_format, namespace_format
