@@ -128,6 +128,34 @@ install(TARGETS phoenix_io_services
 if(CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)
 
+    add_rostest_gtest(write_conversion
+        tests/unit_tests/write_conversion.test
+        tests/unit_tests/write_conversion.cpp
+        ${Headers} ${Sources})
+    add_dependencies(write_conversion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+    target_link_libraries(write_conversion gRPC::gpr gRPC::grpc gRPC::grpc++ ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
+    target_include_directories(write_conversion
+        PUBLIC
+        $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/ServiceStubs>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/ServiceStubs/Includes>
+    )
+
+    add_rostest_gtest(read_conversion
+        tests/unit_tests/read_conversion.test
+        tests/unit_tests/read_conversion.cpp
+        ${Headers} ${Sources})
+    add_dependencies(read_conversion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+    target_link_libraries(read_conversion gRPC::gpr gRPC::grpc gRPC::grpc++ ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
+    target_include_directories(read_conversion
+        PUBLIC
+        $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/ServiceStubs>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/ServiceStubs/Includes>
+    )
+
 endif()
 
 set(files_to_lint
