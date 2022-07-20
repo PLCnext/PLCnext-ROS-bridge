@@ -1,12 +1,13 @@
-#ifndef BRIDGE_TYPE_H
-#define BRIDGE_TYPE_H
+#ifndef PHOENIX_BRIDGE_BRIDGE_TYPE_H
+#define PHOENIX_BRIDGE_BRIDGE_TYPE_H
 
 #include "phoenix_bridge/include_types.h"
 #include "phoenix_bridge/params_struct.h"
 #include "phoenix_bridge/phoenix_comm.h"
 
+#include <string>
+#include <thread>  // NOLINT(build/c++11)
 #include <vector>
-#include <thread>
 
 /**
  * @brief Class to handle creating a bridge per supported ROS msg type
@@ -20,12 +21,12 @@ class BridgeType
 {
 public:
   BridgeType() {}
-  void getPortParams(const std::string param_name, std::vector<PortParams> &port_vector);
+  void getPortParams(const std::string param_name, std::vector<PortParams> *port_vector);
   void init(const std::string param_name, ros::NodeHandle nh);
 
 private:
-  std::vector<PortParams> pub_params_; /// Parameters of publishers to create
-  std::vector<PortParams> sub_params_; /// Parameters of subscribers to create
+  std::vector<PortParams> pub_params_;  /// Parameters of publishers to create
+  std::vector<PortParams> sub_params_;  /// Parameters of subscribers to create
   void publisherFunction(const PortParams port);
   PhoenixComm<T> comm_;
   ros::NodeHandle nh_;
@@ -40,10 +41,10 @@ template<typename T> inline
 void BridgeType<T>::init(const std::string param_name, ros::NodeHandle nh)
 {
   nh_ = nh;
-  getPortParams(param_name + "/publishers", pub_params_);
-  getPortParams(param_name + "/subscribers", sub_params_);
+  getPortParams(param_name + "/publishers", &pub_params_);
+  getPortParams(param_name + "/subscribers", &sub_params_);
   std::string address;
-  if(!ros::param::get("communication/grpc/address", address))
+  if (!ros::param::get("communication/grpc/address", address))
   {
     ROS_ERROR_STREAM(ros::this_node::getName() << " Could not find grpc address param");
   }
@@ -53,24 +54,25 @@ void BridgeType<T>::init(const std::string param_name, ros::NodeHandle nh)
   comm_.init(address);
 
   /// Spawn pubs
-  for (auto port:pub_params_)
+  for (auto port : pub_params_)
   {
     std::thread thr(std::bind(&BridgeType::publisherFunction, this, port));
-    thr.detach(); // Thread nust ensure graceful shutdown of itself since it is detached
+    thr.detach();  // Thread nust ensure graceful shutdown of itself since it is detached
   }
 
   /// Spawn subs
-  for (auto port:sub_params_)
+  for (auto port : sub_params_)
   {
     subscribers_.
         push_back(nh_.subscribe<T>(port.name_, 10,
                                     [this, port](const boost::shared_ptr<const T> msg) ->
-                                    void {
-                                      if(!comm_.sendToPLC(port.datapath_, *msg.get()))
+                                    void
+                                    {
+                                      if (!comm_.sendToPLC(port.datapath_, *msg.get()))
                                         ROS_ERROR_STREAM_ONCE(ros::this_node::getName() << ": "
                                         << port.name_ << " Failed to send data to PLC at " << port.datapath_);
                                     }
-                                   ));
+                                    ));  // NOLINT(whitespace/parens)
   }
 }
 
@@ -82,23 +84,23 @@ void BridgeType<T>::init(const std::string param_name, ros::NodeHandle nh)
  * @param port_vector Save all the read param data into a vector of PortParams
  */
 template<typename T> inline
-void BridgeType<T>::getPortParams(const std::string param_name, std::vector<PortParams> &port_vector)
+void BridgeType<T>::getPortParams(const std::string param_name, std::vector<PortParams> *port_vector)
 {
   /// @todo Verify types as per https://answers.ros.org/question/318544/retrieve-list-of-lists-from-yaml-file-parameter-server/
   /// @todo Try catch everything
   XmlRpc::XmlRpcValue param_list;
-  if(!nh_.getParam(param_name, param_list))
+  if (!nh_.getParam(param_name, param_list))
   {
     ROS_ERROR_STREAM(ros::this_node::getName() << " Could not find " << param_name);
   }
-  for(int i=0; i<param_list.size(); i++)
+  for (int i = 0; i < param_list.size(); i++)
   {
     /// 0 - topic_name - std::string
     /// 1 - datapath (i.e. instance path for gRPC - std::string
     /// 2 - frequency - int
-    port_vector.push_back(PortParams(param_list[i][0], param_list[i][1], param_list[i][2]));
+    port_vector->push_back(PortParams(param_list[i][0], param_list[i][1], param_list[i][2]));
   }
-  for (auto ele:port_vector)
+  for (auto ele : *port_vector)
   {
     ROS_INFO_STREAM(ros::this_node::getName() << ": "
         <<param_name << ": " << ele.name_ << " " << ele.datapath_ << " " << ele.frequency_);
@@ -112,15 +114,17 @@ void BridgeType<T>::getPortParams(const std::string param_name, std::vector<Port
 template<typename T> inline
 void BridgeType<T>::publisherFunction(const PortParams port)
 {
-  ros::Publisher pub = nh_.advertise<T>(port.name_, 1000); /// @todo Parametrise the publisher buffer size? Pros/Cons?
-  while(ros::ok())
+  ros::Publisher pub = nh_.advertise<T>(port.name_, 1000);  /// @todo Parametrise the publisher buffer size? Pros/Cons?
+  while (ros::ok())
   {
     ros::spinOnce();
     T msg_rcvd;
     if (comm_.getFromPLC(port.datapath_, msg_rcvd))
     {
-      pub.publish(boost::make_shared<T>(msg_rcvd)); /// 0 copy transfer
-    } else {
+      pub.publish(boost::make_shared<T>(msg_rcvd));  /// 0 copy transfer
+    }
+    else
+    {
       ROS_ERROR_STREAM_ONCE(ros::this_node::getName() << ": "
         << port.name_ << " Failed to get data from PLC at " << port.datapath_);
     }
@@ -128,4 +132,4 @@ void BridgeType<T>::publisherFunction(const PortParams port)
   }
 }
 
-#endif // BRIDGE_TYPE_H
+#endif  // PHOENIX_BRIDGE_BRIDGE_TYPE_H

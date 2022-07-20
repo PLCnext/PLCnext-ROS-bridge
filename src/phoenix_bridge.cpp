@@ -18,26 +18,26 @@ PhoenixBridge::PhoenixBridge(ros::NodeHandle nh)
 
   obj = ParamParser()
   for type in obj.types_:
-          cog.outl(  "if (nh.hasParam(\"{}/{}\"))                   "   .format(type[0], type[1])                                 )
+          cog.outl(  "if (nh.hasParam(\"{}/{}\"))".format(type[0], type[1]))
           cog.outl("{")
-          cog.outl(  "  ROS_INFO_STREAM(\" Spawing {}/{} bridge \");  " .format(type[0], type[1])                        )
-          cog.outl(  "  {}_bridge_.init(\"{}/{}\", nh);            "    .format(type[1].lower(), type[0], type[1])       )
+          cog.outl(  "  ROS_INFO_STREAM(\" Spawing {}/{} bridge \");".format(type[0], type[1]))
+          cog.outl(  "  {}_bridge_.init(\"{}/{}\", nh);".format(type[1].lower(), type[0], type[1]))
           cog.outl("}")
   ]]]*/
-  if (nh.hasParam("nav_msgs/Odometry"))                   
+  if (nh.hasParam("nav_msgs/Odometry"))
   {
-    ROS_INFO_STREAM(" Spawing nav_msgs/Odometry bridge ");  
-    odometry_bridge_.init("nav_msgs/Odometry", nh);            
+    ROS_INFO_STREAM(" Spawing nav_msgs/Odometry bridge ");
+    odometry_bridge_.init("nav_msgs/Odometry", nh);
   }
-  if (nh.hasParam("geometry_msgs/Twist"))                   
+  if (nh.hasParam("geometry_msgs/Twist"))
   {
-    ROS_INFO_STREAM(" Spawing geometry_msgs/Twist bridge ");  
-    twist_bridge_.init("geometry_msgs/Twist", nh);            
+    ROS_INFO_STREAM(" Spawing geometry_msgs/Twist bridge ");
+    twist_bridge_.init("geometry_msgs/Twist", nh);
   }
-  if (nh.hasParam("std_msgs/String"))                   
+  if (nh.hasParam("std_msgs/String"))
   {
-    ROS_INFO_STREAM(" Spawing std_msgs/String bridge ");  
-    string_bridge_.init("std_msgs/String", nh);            
+    ROS_INFO_STREAM(" Spawing std_msgs/String bridge ");
+    string_bridge_.init("std_msgs/String", nh);
   }
-  //[[[end]]]
+  // [[[end]]]
 }

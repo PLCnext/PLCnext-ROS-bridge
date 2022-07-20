@@ -8,7 +8,7 @@ communication:
 # The list format per port (i.e. pub/sub) is [topic_name, grpc_instance_path, frequency]
 # See code comments in other headers for more info
 
-nav_msgs/Odometry/2: # This is the identifying string used in init of type
+nav_msgs/Odometry: # This is the identifying string used in init of type
   publishers: # Parsing this is hard coded
     - [pub_odom_1, datapath_odom_1, 10] # Parsed to save as PortParams struct
     - [pub_odom_2, datapath_odom_2, 20]

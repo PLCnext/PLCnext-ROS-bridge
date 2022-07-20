@@ -1,13 +1,14 @@
 #include "phoenix_bridge/phoenix_io_services.h"
 
 #include <functional>
+#include <string>
 
 PhoenixIOServices::PhoenixIOServices(ros::NodeHandle nh):
   nh_(nh)
 {
   /// Initialise comm layer
   std::string address;
-  if(!ros::param::get("communication/grpc/address", address))
+  if (!ros::param::get("communication/grpc/address", address))
   {
     ROS_ERROR_STREAM(ros::this_node::getName() << " Could not find grpc address param");
   }
@@ -20,10 +21,10 @@ PhoenixIOServices::PhoenixIOServices(ros::NodeHandle nh):
   batch_get_server = nh_.advertiseService("batch_get_io", &PhoenixIOServices::batchGetCB, this);
   single_set_server = nh_.advertiseService("single_set_io", &PhoenixIOServices::singleSetCB, this);
   single_get_server = nh_.advertiseService("single_get_io", &PhoenixIOServices::singleGetCB, this);
-
 }
 
-bool PhoenixIOServices::batchSetCB(phoenix_bridge::BatchSetIO::Request &req, phoenix_bridge::BatchSetIO::Response &res)
+bool PhoenixIOServices::batchSetCB(phoenix_bridge::BatchSetIO::Request &req,  // NOLINT(runtime/references)
+                                    phoenix_bridge::BatchSetIO::Response &res)  // NOLINT(runtime/references)
 {
   if (req.payload.size() == 0)
   {
@@ -34,7 +35,7 @@ bool PhoenixIOServices::batchSetCB(phoenix_bridge::BatchSetIO::Request &req, pho
   res.status = true;
   for (int i=0; i< req.payload.size(); i++)
   {
-    if(!comm_.sendToPLC(req.payload[i].datapath, req.payload[i].value))
+    if (!comm_.sendToPLC(req.payload[i].datapath, req.payload[i].value))
     {
       res.status = false;
       ROS_WARN_STREAM(ros::this_node::getName() << ": batch_set_service failed setting " << req.payload[i].datapath);
@@ -43,7 +44,8 @@ bool PhoenixIOServices::batchSetCB(phoenix_bridge::BatchSetIO::Request &req, pho
   return res.status;
 }
 
-bool PhoenixIOServices::batchGetCB(phoenix_bridge::BatchGetIO::Request &req, phoenix_bridge::BatchGetIO::Response &res)
+bool PhoenixIOServices::batchGetCB(phoenix_bridge::BatchGetIO::Request &req,  // NOLINT(runtime/references)
+                                    phoenix_bridge::BatchGetIO::Response &res)  // NOLINT(runtime/references)
 {
   if (req.datapaths.size() == 0)
   {
@@ -55,7 +57,7 @@ bool PhoenixIOServices::batchGetCB(phoenix_bridge::BatchGetIO::Request &req, pho
   for (int i=0; i< req.datapaths.size(); i++)
   {
     bool val;
-    if(!comm_.getFromPLC(req.datapaths[i], val))
+    if (!comm_.getFromPLC(req.datapaths[i], val))
     {
       res.status = false;
       ROS_WARN_STREAM(ros::this_node::getName() << ": batch_get_service failed getting " << req.datapaths[i]);
@@ -65,7 +67,8 @@ bool PhoenixIOServices::batchGetCB(phoenix_bridge::BatchGetIO::Request &req, pho
   return res.status;
 }
 
-bool PhoenixIOServices::singleSetCB(phoenix_bridge::SingleSetIO::Request &req, phoenix_bridge::SingleSetIO::Response &res)
+bool PhoenixIOServices::singleSetCB(phoenix_bridge::SingleSetIO::Request &req,  // NOLINT(runtime/references)
+                                      phoenix_bridge::SingleSetIO::Response &res)  // NOLINT(runtime/references)
 {
   res.status = comm_.sendToPLC(req.datapath, req.value);
   if (!res.status)
@@ -75,7 +78,8 @@ bool PhoenixIOServices::singleSetCB(phoenix_bridge::SingleSetIO::Request &req, p
   return res.status;
 }
 
-bool PhoenixIOServices::singleGetCB(phoenix_bridge::SingleGetIO::Request &req, phoenix_bridge::SingleGetIO::Response &res)
+bool PhoenixIOServices::singleGetCB(phoenix_bridge::SingleGetIO::Request &req,  // NOLINT(runtime/references)
+                                      phoenix_bridge::SingleGetIO::Response &res)  // NOLINT(runtime/references)
 {
   bool val;
   res.status = comm_.getFromPLC(req.datapath, val);
