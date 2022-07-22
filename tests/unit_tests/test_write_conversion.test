@@ -3,7 +3,7 @@
     <group ns="ambs">
 
     <test test-name="gtest_write_test" pkg="phoenix_bridge"
-        type="write_conversion" name="gtest_write_test">
+        type="test_write_conversion" name="gtest_write_test">
     </test>
 
     </group>
