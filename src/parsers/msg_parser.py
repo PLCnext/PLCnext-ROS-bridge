@@ -133,7 +133,7 @@ def get_grpc_type(cpp_type:str):
         "double"  : "CT_Real64",
         "int32"   : "CT_Int32",
         "uint32"  : "CT_Uint32",
-        "time"    : "CT_IecTime"
+        "time"    : "CT_Real64"
         }
 
     if cpp_type in TypesDict.keys():

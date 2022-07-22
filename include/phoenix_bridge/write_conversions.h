@@ -10,6 +10,8 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/dynamic_message.h>
 
+#include <math.h>
+
 #include "phoenix_bridge/ServiceStubs/Plc/Gds/IDataAccessService.grpc.pb.h"
 #include "phoenix_bridge/ServiceStubs/ArpTypes.grpc.pb.h"
 
@@ -134,12 +136,8 @@ namespace conversions
               cog.outl("  {}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
 
           # Line 3 of boilerplate code
-          ## Skipping time for now, @TODO: Handle this
-          if typ =="time":
-              cog.outl("  // SKIPPING TIME TYPE FOR NOW")
-              cog.outl("")
-              continue
           if typ != "STRUCT":
+              # Special handling for arrays
               if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
                   array_var = var_name+"_array"
                   array_typ = typ.split('[')[0] # Get the type of the array
@@ -151,6 +149,12 @@ namespace conversions
                   cog.outl("    elem->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(get_grpc_type(array_typ)))
                   cog.outl("    elem->set_{}value(datum);".format(array_typ))
                   cog.outl("  }")
+              # Special handling for time type
+              elif typ == "time":
+                  cog.outl("  // time type is specially handled as a double type of \'sec.nsec\'")
+                  cog.outl("  double nsec_to_double = data_to_pack.header.stamp.nsec/pow(10, 9);  // ROS1 time.nsec typically has 9 digit precision")
+                  cog.outl("  double stamp_to_double = data_to_pack.header.stamp.sec + nsec_to_double;")
+                  cog.outl("  {}->set_doublevalue(stamp_to_double);".format(var_name))
               else:
                   cog.outl("  {}->set_{}value(data_to_pack.{});".format(var_name, typ, nam))
           cog.outl("")
@@ -172,8 +176,11 @@ namespace conversions
     header_seq->set_uint32value(data_to_pack.header.seq);
 
     ::Arp::Type::Grpc::ObjectType* header_stamp = header_1->mutable_structvalue()->add_structelements();
-    header_stamp->set_typecode(::Arp::Type::Grpc::CoreType::CT_IecTime);
-    // SKIPPING TIME TYPE FOR NOW
+    header_stamp->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+    // time type is specially handled as a double type of 'sec.nsec'
+    double nsec_to_double = data_to_pack.header.stamp.nsec/pow(10, 9);  // ROS1 time.nsec typically has 9 digit precision
+    double stamp_to_double = data_to_pack.header.stamp.sec + nsec_to_double;
+    header_stamp->set_doublevalue(stamp_to_double);
 
     ::Arp::Type::Grpc::ObjectType* header_frame_id = header_1->mutable_structvalue()->add_structelements();
     header_frame_id->set_typecode(::Arp::Type::Grpc::CoreType::CT_String);
