@@ -1,0 +1,10 @@
+<launch>
+
+    <rosparam command="load" file="$(find phoenix_bridge)/tests/component_tests/test_description.yaml" />
+
+    <node pkg="phoenix_bridge" name="phoenix_bridge" type ="phoenix_bridge_node"/>
+
+    <test test-name="gtest_topics_test" pkg="phoenix_bridge"
+        type="test_topics" name="gtest_topics_test"/>
+
+</launch>
