@@ -10,6 +10,8 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/dynamic_message.h>
 
+#include <math.h>
+
 #include "phoenix_bridge/ServiceStubs/Plc/Gds/IDataAccessService.grpc.pb.h"
 #include "phoenix_bridge/ServiceStubs/ArpTypes.grpc.pb.h"
 
@@ -124,10 +126,18 @@ namespace conversions
 
         cog.outl("  ObjectType {} = {}.structvalue().structelements({});".format(var_name, upper, child_index))
         if typ != "STRUCT":
+            # Special handling of time type
             if typ=="time":
-                cog.outl("  //SKIPPING TIME TYPE FOR NOW")
+                cog.outl("  // time type is specially handled as a double type of \'sec.nsec\'")
+                cog.outl("  double stamp_as_double = {}.doublevalue();".format(var_name))
+                cog.outl("  double sec_as_double, nsec_as_double;")
+                cog.outl("  nsec_as_double = modf(stamp_as_double, &sec_as_double);  // Split the integral and decimal parts")
+                cog.outl("  uint32_t nsec_as_int = static_cast<uint32_t>(nsec_as_double * pow(10, 9)); // ROS1 time.nsec typically has 9 digit precision")
+                cog.outl("  unpack_to_data.header.stamp.sec = static_cast<uint32_t>(sec_as_double);")
+                cog.outl("  unpack_to_data.header.stamp.nsec = nsec_as_int;")
                 cog.outl("")
                 continue
+            # Special handling of array types
             if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
                 array_typ = typ.split('[')[0] # Get the type of the array
                 array_typ = "double" if array_typ=="float64" else array_typ
@@ -152,7 +162,13 @@ namespace conversions
     unpack_to_data.header.seq = header_seq.uint32value();
 
     ObjectType header_stamp = header_1.structvalue().structelements(1);
-    //SKIPPING TIME TYPE FOR NOW
+    // time type is specially handled as a double type of 'sec.nsec'
+    double stamp_as_double = header_stamp.doublevalue();
+    double sec_as_double, nsec_as_double;
+    nsec_as_double = modf(stamp_as_double, &sec_as_double);  // Split the integral and decimal parts
+    uint32_t nsec_as_int = static_cast<uint32_t>(nsec_as_double * pow(10, 9)); // ROS1 time.nsec typically has 9 digit precision
+    unpack_to_data.header.stamp.sec = static_cast<uint32_t>(sec_as_double);
+    unpack_to_data.header.stamp.nsec = nsec_as_int;
 
     ObjectType header_frame_id = header_1.structvalue().structelements(2);
     unpack_to_data.header.frame_id = header_frame_id.stringvalue();
