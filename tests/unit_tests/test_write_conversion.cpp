@@ -66,8 +66,8 @@ TEST(WriteConversionTests, TestOdomMsg)
   std::string test_instance_path = "test_path";
 
   nav_msgs::Odometry msg_to_test;
-  msg_to_test.header.stamp.sec = 111;
-  msg_to_test.header.stamp.nsec = 222;
+  msg_to_test.header.stamp.sec = 1658485862;
+  msg_to_test.header.stamp.nsec = 602742553;
   msg_to_test.header.frame_id = "header_frame_id";
   msg_to_test.child_frame_id = "child_frame_id";
   msg_to_test.pose.pose.position.x = 1.11;
@@ -98,9 +98,9 @@ TEST(WriteConversionTests, TestOdomMsg)
 
   ASSERT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
   /// Counted by first manually verifying debugstr
-  /// @TODO: Update this test properly once time setting is figured out. Use ASSERT_EQ with the right numbers
-  // ASSERT_EQ(static_cast<int>(debugstr.find("Int32Value: 111")) ,290);
-  // ASSERT_EQ(static_cast<int>(debugstr.find("Uint32Value: 222")) , 397);
+
+  // Time is handled as double of `sec.nsec` but some precision is lost
+  ASSERT_NE(static_cast<int>(debugstr.find("DoubleValue: 1658485862.6027")),-1);
   ASSERT_NE(static_cast<int>(debugstr.find("StringValue: \"header_frame_id\"")), -1);
   ASSERT_NE(static_cast<int>(debugstr.find("StringValue: \"child_frame_id\"")), -1);
   ASSERT_NE(static_cast<int>(debugstr.find("DoubleValue: 1.11")),-1);

@@ -130,13 +130,13 @@ if(CATKIN_ENABLE_TESTING)
 
     # --- UNIT TESTS----
 
-    add_rostest_gtest(write_conversion
-        tests/unit_tests/write_conversion.test
-        tests/unit_tests/write_conversion.cpp
+    add_rostest_gtest(test_write_conversion
+        tests/unit_tests/test_write_conversion.test
+        tests/unit_tests/test_write_conversion.cpp
         ${Headers} ${Sources})
-    add_dependencies(write_conversion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-    target_link_libraries(write_conversion gRPC::gpr gRPC::grpc gRPC::grpc++ ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
-    target_include_directories(write_conversion
+    add_dependencies(test_write_conversion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+    target_link_libraries(test_write_conversion gRPC::gpr gRPC::grpc gRPC::grpc++ ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
+    target_include_directories(test_write_conversion
         PUBLIC
         $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -144,13 +144,13 @@ if(CATKIN_ENABLE_TESTING)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/ServiceStubs/Includes>
     )
 
-    add_rostest_gtest(read_conversion
-        tests/unit_tests/read_conversion.test
-        tests/unit_tests/read_conversion.cpp
+    add_rostest_gtest(test_read_conversion
+        tests/unit_tests/test_read_conversion.test
+        tests/unit_tests/test_read_conversion.cpp
         ${Headers} ${Sources})
-    add_dependencies(read_conversion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-    target_link_libraries(read_conversion gRPC::gpr gRPC::grpc gRPC::grpc++ ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
-    target_include_directories(read_conversion
+    add_dependencies(test_read_conversion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+    target_link_libraries(test_read_conversion gRPC::gpr gRPC::grpc gRPC::grpc++ ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
+    target_include_directories(test_read_conversion
         PUBLIC
         $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
