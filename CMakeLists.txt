@@ -33,6 +33,7 @@ add_message_files(
 
 add_service_files(
   FILES
+  AnalogIO.srv
   BatchGetIO.srv
   BatchSetIO.srv
   SingleGetIO.srv
