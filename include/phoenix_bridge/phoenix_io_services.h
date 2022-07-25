@@ -2,6 +2,7 @@
 #define PHOENIX_BRIDGE_PHOENIX_IO_SERVICES_H
 
 #include "phoenix_bridge/SetIO.h"
+#include "phoenix_bridge/AnalogIO.h"
 #include "phoenix_bridge/BatchGetIO.h"
 #include "phoenix_bridge/BatchSetIO.h"
 #include "phoenix_bridge/SingleSetIO.h"
@@ -20,7 +21,10 @@ private:
   ros::ServiceServer batch_get_server;
   ros::ServiceServer single_set_server;
   ros::ServiceServer single_get_server;
+  ros::ServiceServer analog_read_server;
+  ros::ServiceServer analog_write_server;
   PhoenixComm<bool> comm_;
+  PhoenixComm<double> analog_comm_;
   ros::NodeHandle nh_;
 
   bool batchSetCB(phoenix_bridge::BatchSetIO::Request &req,  // NOLINT(runtime/references)
@@ -31,6 +35,10 @@ private:
                     phoenix_bridge::SingleSetIO::Response &res);  // NOLINT(runtime/references)
   bool singleGetCB(phoenix_bridge::SingleGetIO::Request &req,  // NOLINT(runtime/references)
                     phoenix_bridge::SingleGetIO::Response &res);  // NOLINT(runtime/references)
+  bool analogReadCB(phoenix_bridge::AnalogIO::Request &req,  // NOLINT(runtime/references)
+                  phoenix_bridge::AnalogIO::Response &res);  // NOLINT(runtime/references)
+  bool analogWriteCB(phoenix_bridge::AnalogIO::Request &req,  // NOLINT(runtime/references)
+                  phoenix_bridge::AnalogIO::Response &res);  // NOLINT(runtime/references)
 };
 
 #endif  // PHOENIX_BRIDGE_PHOENIX_IO_SERVICES_H

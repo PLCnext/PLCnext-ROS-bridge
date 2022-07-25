@@ -15,12 +15,15 @@ PhoenixIOServices::PhoenixIOServices(ros::NodeHandle nh):
 
   /// Initialise communication layer
   comm_.init(address);
+  analog_comm_.init(address);
 
   /// Spawn services
   batch_set_server = nh_.advertiseService("batch_set_io", &PhoenixIOServices::batchSetCB, this);
   batch_get_server = nh_.advertiseService("batch_get_io", &PhoenixIOServices::batchGetCB, this);
   single_set_server = nh_.advertiseService("single_set_io", &PhoenixIOServices::singleSetCB, this);
   single_get_server = nh_.advertiseService("single_get_io", &PhoenixIOServices::singleGetCB, this);
+  analog_read_server = nh_.advertiseService("read_analog_io", &PhoenixIOServices::analogReadCB, this);
+  analog_write_server = nh_.advertiseService("write_analog_io", &PhoenixIOServices::analogWriteCB, this);
 }
 
 bool PhoenixIOServices::batchSetCB(phoenix_bridge::BatchSetIO::Request &req,  // NOLINT(runtime/references)
@@ -87,6 +90,30 @@ bool PhoenixIOServices::singleGetCB(phoenix_bridge::SingleGetIO::Request &req,  
   if (!res.status)
   {
     ROS_WARN_STREAM(ros::this_node::getName() << ": single_get_service failed getting " << req.datapath);
+  }
+  return res.status;
+}
+
+bool PhoenixIOServices::analogReadCB(phoenix_bridge::AnalogIO::Request &req,  // NOLINT(runtime/references)
+                                      phoenix_bridge::AnalogIO::Response &res)  // NOLINT(runtime/references)
+{
+  double val;
+  res.status = analog_comm_.getFromPLC(req.instance_path, val);
+  res.value = val;
+  if (!res.status)
+  {
+    ROS_WARN_STREAM(ros::this_node::getName() << ": read_analog_IO failed getting " << req.instance_path);
+  }
+  return res.status;
+}
+
+bool PhoenixIOServices::analogWriteCB(phoenix_bridge::AnalogIO::Request &req,  // NOLINT(runtime/references)
+                                      phoenix_bridge::AnalogIO::Response &res)  // NOLINT(runtime/references)
+{
+  res.status = analog_comm_.sendToPLC(req.instance_path, req.value);
+  if (!res.status)
+  {
+    ROS_WARN_STREAM(ros::this_node::getName() << ": write_analog_IO failed writing " << req.instance_path);
   }
   return res.status;
 }
