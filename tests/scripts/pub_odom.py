@@ -27,6 +27,8 @@ def talker():
         msg.twist.twist.angular.x = 20*i + 4
         msg.twist.twist.angular.y = 20*i + 5
         msg.twist.twist.angular.z = 20*i + 6
+        msg.pose.covariance.clear()
+        msg.twist.covariance.clear()
         for x in range(36):
             msg.pose.covariance.append(x)
             msg.twist.covariance.append(x)

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
 import sys
 import rospy
 from phoenix_bridge.srv import SingleGetIO, SingleGetIORequest, SingleGetIOResponse
