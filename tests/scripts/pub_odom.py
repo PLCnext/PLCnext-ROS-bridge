@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
-from rospkg import RosPack
 import rospy
 from nav_msgs.msg import Odometry
 
 def talker():
-    pub = rospy.Publisher('/odom_sub_1', Odometry, queue_size=10)
+    pub = rospy.Publisher('/sub_odom_1', Odometry, queue_size=10)
     rospy.init_node('talker', anonymous=True)
-    rate = rospy.Rate(10) # 10hz
+    rate = rospy.Rate(1) # 1hz
     i = 0
     while not rospy.is_shutdown():
         msg = Odometry()
