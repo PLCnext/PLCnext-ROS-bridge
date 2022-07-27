@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>phoenix_bridge</name>
-  <version>0.4.0</version>
+  <version>0.4.2</version>
   <description>The phoenix_bridge package</description>
 
-
-  <maintainer email="tejas@todo.todo">tejas</maintainer>
+  <maintainer email="phoenix_or_ipa@todo.todo">todo</maintainer>
+  <author email="tejas.kumar.shastha@ipa.fraunhofer.de">Tejas</author>
 
   <license>Apache 2.0</license>
 
