@@ -119,9 +119,11 @@ namespace conversions
         cog.outl("  ObjectType {} = {}.structvalue().structelements({});".format(var_name, upper, child_index))
         if typ != "STRUCT":
             if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
+                array_typ = typ.split('[')[0] # Get the type of the array
+                array_typ = "double" if array_typ=="float64" else array_typ
                 cog.outl("  for (int i = 0; i < {}.arrayvalue().arrayelements_size(); i++)".format(var_name))
                 cog.outl("  {")
-                cog.outl("    unpack_to_data.{}[i] = {}.arrayvalue().arrayelements(i).doublevalue();".format(nam,var_name))
+                cog.outl("    unpack_to_data.{}[i] = {}.arrayvalue().arrayelements(i).{}value();".format(nam,var_name, array_typ))
                 cog.outl("  }")
             else:
                 cog.outl("  unpack_to_data.{} = {}.{}value();".format(nam, var_name, typ))
