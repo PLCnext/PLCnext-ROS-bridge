@@ -3,29 +3,26 @@
 import sys
 import time 
 
-from phoenix_bridge.srv import AnalogIO
+from phoenix_bridge.srv import SingleGetIO
 import rclpy
 from rclpy.node import Node
 
 class MinimalClientAsync(Node):
 
   def __init__(self):
-    super().__init__('write_analog_io')
-    self.cli = self.create_client(AnalogIO, '/write_analog_IO')
+    super().__init__('single_get_IO')
+    self.cli = self.create_client(SingleGetIO, '/single_get_IO')
     while not self.cli.wait_for_service(timeout_sec=1.0):
         self.get_logger().info('service not available, waiting again...')
-    self.req = AnalogIO.Request()
-    self.double = 1.0
+    self.req = SingleGetIO.Request()
 
     while True:
       try:
-        self.req.instance_path = 'Arp.Plc.Eclr/MainInstance.gRPC_Obj.double_data'
-        self.req.value = self.double
-        self.double += 1.0
+        self.req.datapath = 'Arp.Plc.Eclr/MainInstance.gRPC_Obj.bool_data'
         self.future = self.cli.call_async(self.req)
         rclpy.spin_until_future_complete(self, self.future)
         response = self.future.result()
-        print("Set ", self.req.value, " to ", self.req.instance_path, " and got result ", response.status)
+        print("Get from", self.req.datapath, ", status", response.status, "value", response.value)
         time.sleep(1)
       except KeyboardInterrupt:
         break

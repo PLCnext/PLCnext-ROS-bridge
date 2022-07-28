@@ -1,5 +1,5 @@
 import os
-import sys
+import time
 import unittest
 
 import ament_index_python
@@ -64,6 +64,7 @@ class TestGoodProcess(unittest.TestCase):
         """
         proc_output.assertWaitFor('Node starting', timeout=10, stream='stdout', process=node_bridge)
         topics_and_types = self.node.get_topic_names_and_types()
+        time.sleep(0.5)  # Wait for the bridge to spawn all topics. Prevents sporadic test failure. 
 
         current_topics = []
         for topic in topics_and_types:

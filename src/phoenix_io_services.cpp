@@ -90,7 +90,7 @@ bool PhoenixIOServices::batchSetCB(
   std::shared_ptr<BatchSetIO::Response> response)
 {
   if (request->payload.size() == 0) {
-    RCLCPP_WARN_STREAM(this->get_logger(), ": batch_set_service got empty payload request!!");
+    RCLCPP_WARN_STREAM(this->get_logger(), "batch_set_service got empty payload request!!");
     response->status = false;
     return false;
   }
@@ -100,7 +100,7 @@ bool PhoenixIOServices::batchSetCB(
       digital_comm_.sendToPLC(request->payload[i].datapath, request->payload[i].value);
     if (!response->status) {
       RCLCPP_WARN_STREAM(
-        this->get_logger(), ": batch_set_service failed setting " << request->payload[i].datapath);
+        this->get_logger(), "batch_set_service failed setting " << request->payload[i].datapath);
       return false;
     }
   }
@@ -113,7 +113,7 @@ bool PhoenixIOServices::batchGetCB(
 {
   RCLCPP_INFO_STREAM(this->get_logger(), "Batch set service called");
   if (request->datapaths.size() == 0) {
-    RCLCPP_WARN_STREAM(this->get_logger(), ": batch_get_service got empty payload request!!");
+    RCLCPP_WARN_STREAM(this->get_logger(), "batch_get_service got empty payload request!!");
     response->status = false;
     return false;
   }
@@ -124,7 +124,7 @@ bool PhoenixIOServices::batchGetCB(
     if (!digital_comm_.getFromPLC(request->datapaths[i], val)) {
       response->status = false;
       RCLCPP_WARN_STREAM(
-        this->get_logger(), ": batch_get_service failed getting " << request->datapaths[i]);
+        this->get_logger(), "batch_get_service failed getting " << request->datapaths[i]);
       return false;
     }
     response->values.push_back(val);
