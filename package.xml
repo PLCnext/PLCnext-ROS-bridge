@@ -4,8 +4,11 @@
   <name>phoenix_bridge</name>
   <version>0.4.4</version>
   <description>ROS2 Phoenix bridge</description>
-  <maintainer email="tejas.kumar.shastha@ipa.fraunhofer.de">tejas</maintainer>
-  <license>TODO: License declaration</license>
+
+  <maintainer email="phoenix_or_ipa@todo.todo">todo</maintainer>
+  <maintainer email="tejas.kumar.shastha@ipa.fraunhofer.de">Tejas</maintainer>
+
+  <license>Apache 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>

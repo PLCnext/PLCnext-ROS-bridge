@@ -136,7 +136,7 @@ if(BUILD_TESTING)
   )
 
   ament_clang_format(${files_to_lint})
-  ament_cpplint(${files_to_lint} FILTERS "-legal/copyright,-build/include_order")
+  ament_cpplint(${files_to_lint} FILTERS "-build/include_order")
   ament_cppcheck(${files_to_lint})
   ament_lint_cmake()
   ament_xmllint()
