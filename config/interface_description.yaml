@@ -18,7 +18,6 @@ odom_bridge:
       topics: [sub_odom_1, sub_odom_2]
       datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data]
       frequencies: [13, 14]
-    use_sim_time: false
 
 twist_bridge:
   ros__parameters:
@@ -34,7 +33,6 @@ twist_bridge:
       topics: [sub_twist_1, sub_twist_2]
       datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data]
       frequencies: [13, 14]
-    use_sim_time: false
 
 string_bridge:
   ros__parameters:
@@ -50,4 +48,3 @@ string_bridge:
       topics: [sub_string_1, sub_string_2]
       datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.string_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.string_data]
       frequencies: [23, 24]
-    use_sim_time: false
