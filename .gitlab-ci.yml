@@ -100,7 +100,10 @@ phoenix_bridge:
         TARGET=$TARGET_LATEST
       fi
       if [ $CI_COMMIT_TAG ]; then
-        TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_TAG//\//-}
+        convert_tag=${CI_COMMIT_TAG//\//-}
+        distro_prefix=${ROS_DISTRO}-
+        remove_distro_tag=${convert_tag#"$distro_prefix"}
+        TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
         TARGET=$TARGET_RELEASE
       fi
       docker tag ${PREFIX}${NAME}${SUFFIX} ${TARGET} && docker push ${TARGET}
