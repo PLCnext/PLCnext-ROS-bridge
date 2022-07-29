@@ -13,6 +13,7 @@ variables:
   TARGET_LATEST: ${CI_REGISTRY_IMAGE}/${NAME}:latest
   TARGET_BRANCH: ${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-}
   TARGET_RELEASE: ${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_TAG//\//-}
+  CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
 
 services:
   - docker:dind
@@ -67,6 +68,7 @@ prepare:
       --build-arg ROS_DISTRO
       --build-arg ROSINSTALL_CI_JOB_TOKEN=$ROSINSTALL_CI_JOB_TOKEN
       --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN
+      --build-arg CMAKE_ARGS
       -t ${PREFIX}${NAME}${SUFFIX} ${FOLDER}
   after_script:
     - docker push ${PREFIX}${NAME}${SUFFIX}
