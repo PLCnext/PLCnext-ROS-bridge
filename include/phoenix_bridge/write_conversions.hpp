@@ -107,18 +107,16 @@ namespace conversions
   sys.path.append(os.getcwd()) # Necessary when colcon build invokes this script
 
   from pydoc import locate
-  from phoenix_bridge.param_parser import ParamParser, getResolvedTypeName
-  from phoenix_bridge.msg_parser import decompose_ros_msg_type, extract_import_names, get_grpc_type, get_upper_struct
+  from phoenix_bridge.param_parser import ParamParser
+  from phoenix_bridge.msg_parser import decompose_ros_msg_type, get_grpc_type, get_upper_struct
 
   params = ParamParser()
   for node in params.nodes_:
-    fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
-    write_item_name = node.header_name.replace("/","_")
+    fields = decompose_ros_msg_type(locate(node.msg_type.replace("/",".")))
     fields.insert(0,("grpc_object", 0, "STRUCT")) # Ins<ert the received grpc_object as the uppermost base struct
     cog.outl("template <> inline")
     cog.outl("void packWriteItem<{}>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, {} data_to_pack)"
-              .format(getResolvedTypeName(node.header_name),
-                      getResolvedTypeName(node.header_name)))
+              .format(node.msg_type.replace("/","::"), node.msg_type.replace("/","::")))
 
     cog.outl("{")
     cog.outl("grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);")
@@ -141,16 +139,20 @@ namespace conversions
                 .format(var_name, upper))
 
         # Line 2 of boilerplate code
-        if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
+        # Assuming from empirical evidence that fixed length array types have '[' in the type names
+        # and variable length arrays have 'sequence' in the type names
+        if "[" in typ or "sequence" in typ: 
             cog.outl("{}->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);".format(var_name))
         else:
             cog.outl("{}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
 
         # Line 3 of boilerplate code
         if typ != "STRUCT":
-          if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
+          # Assuming from empirical evidence that fixed length array types have '[' in the type names
+          # and variable length arrays have 'sequence' in the type names
+          if "[" in typ or "sequence" in typ: 
+            array_typ = typ.split('[')[0] if "[" in typ else typ.split('<')[1].split('>')[0]
             array_var = var_name+"_array"
-            array_typ = typ.split('[')[0] # Get the type of the array
             cog.outl("::Arp::Type::Grpc::TypeArray* {} = {}->mutable_arrayvalue();".format(array_var, var_name))
             cog.outl("for (auto datum : data_to_pack.{})".format(nam))
             cog.outl("{")

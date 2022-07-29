@@ -100,20 +100,18 @@ namespace conversions
   sys.path.append(os.getcwd()) # Necessary when colcon build invokes this script
 
   from pydoc import locate
-  from phoenix_bridge.param_parser import ParamParser, getResolvedTypeName
-  from phoenix_bridge.msg_parser import decompose_ros_msg_type, extract_import_names, get_grpc_type, get_upper_struct
+  from phoenix_bridge.param_parser import ParamParser
+  from phoenix_bridge.msg_parser import decompose_ros_msg_type, get_grpc_type, get_upper_struct
 
   params = ParamParser()
   for node in params.nodes_:
-    fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
-    write_item_name = node.header_name.replace("/","_")
+    fields = decompose_ros_msg_type(locate(node.msg_type.replace("/",".")))
     fields.insert(0,("grpc_object", 0, "STRUCT")) # Insert the received grpc_object as the uppermost base struct
     parent_dict = {}
 
     cog.outl("template <>")
     cog.outl("inline void unpackReadObject<{}>(const ObjectType &grpc_object, {}& unpack_to_data)"
-              .format(getResolvedTypeName(node.header_name),
-                      getResolvedTypeName(node.header_name)))
+              .format(node.msg_type.replace("/","::"), node.msg_type.replace("/","::")))
 
     cog.outl("{")
     for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
@@ -134,8 +132,10 @@ namespace conversions
 
         cog.outl("  ObjectType {} = {}.structvalue().structelements({});".format(var_name, upper, child_index))
         if typ != "STRUCT":
-            if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                array_typ = typ.split('[')[0] # Get the type of the array
+            # Assuming from empirical evidence that fixed length array types have '[' in the type names
+            # and variable length arrays have 'sequence' in the type names
+            if "[" in typ or "sequence" in typ: 
+                array_typ = typ.split('[')[0] if "[" in typ else typ.split('<')[1].split('>')[0]
                 array_typ = "double" if array_typ=="float64" else array_typ
                 cog.outl("  for (int i = 0; i < {}.arrayvalue().arrayelements_size(); i++)".format(var_name))
                 cog.outl("  {")

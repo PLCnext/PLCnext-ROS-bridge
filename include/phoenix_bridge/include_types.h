@@ -35,11 +35,11 @@ import os
 
 sys.path.append(os.getcwd()) # Necessary when colcon build invokes this script
 
-from phoenix_bridge.param_parser import ParamParser, getResolvedTypeName
+from phoenix_bridge.param_parser import ParamParser, getSnakeCase
 
 parser = ParamParser()
 for node in parser.nodes_:
-      cog.outl("#include<{}.hpp>".format(node.header_name))
+      cog.outl("#include<{}.hpp>".format(getSnakeCase(node.msg_type)))
 ]]]*/
 #include<nav_msgs/msg/odometry.hpp>
 #include<geometry_msgs/msg/twist.hpp>

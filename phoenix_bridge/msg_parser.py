@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ###
 ### Copyright 2022 Fraunhofer IPA
 ###
@@ -13,8 +15,6 @@
 ### See the License for the specific language governing permissions and
 ### limitations under the License.
 ###
-
-#!/usr/bin/env python3
 
 import sys
 import argparse
@@ -60,6 +60,9 @@ def decompose_ros_msg_type(msg_type):
 
         if typ.find("/") != -1: # If struct ## Empirical observation: all struct types have / in their typenames
             fields.append((nam+"_"+str(lvl), int(lvl), "STRUCT")) # add the struct, append lvl as unique identifier
+        
+        # Type correction, to resolve naming conflicts between ROS2 & grpc
+        typ = "bool" if typ =="boolean" else typ
 
         gentype_name_parts[lvl-1] = nam # Replace the curent level name part
         for ind in range(lvl, max_depth, 1): # Flush the remaining name parts to the right
@@ -75,9 +78,12 @@ TypesDict =  {
     "string"  : "CT_String",
     "STRUCT"  : "CT_Struct",
     "float64" : "CT_Real64",
+    "float"   : "CT_Real64",
     "double"  : "CT_Real64",
     "int32"   : "CT_Int32",
-    "uint32"   : "CT_Uint32"
+    "uint32"  : "CT_Uint32",
+    "uint8"   : "CT_Uint8",
+    "bool"    : "CT_Boolean"
     }
 
 def get_grpc_type(cpp_type:str):
@@ -132,18 +138,6 @@ def to_import_format(a_type: str):
     else:
         return parts[0]+".msg."+parts[1]
 
-def extract_import_names(typename: str):
-    """ Helper function. Extract pymodule name and typename from the parameter header field so that it can be imported """
-    parts = typename.split("/")
-    libname = ""
-    typename = ""
-    for i in range(size(parts)):
-        if i < size(parts) - 1:
-            libname = libname + parts[i] + "."
-        else:
-            typename = parts[i].title()
-    return libname+typename
-
 def get_type_name_from_parts(parts):
     """ Helper function. Concatenate non empty strings in a list of strings to form a complete type name """
     name = ""
@@ -162,11 +156,16 @@ def preview_write_codegen():
     import param_parser
     params = param_parser.ParamParser()
     for node in params.nodes_:
-        print("----------"+node.header_name+"---------------")
+        print("----------"+node.msg_type+"---------------")
         # locate does a lexical cast from a string to a type that can be found in sys.path
-        fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
+        fields = decompose_ros_msg_type(locate(node.msg_type.replace("/",".")))
         fields.insert(0,("grpc_object", 0, "STRUCT")) #  Insert the received grpc_object as the uppermost base struct
 
+        print("template <>")
+        print("inline void packWriteObject<{}>(ObjectType &grpc_object, {}& unpack_to_data)"
+              .format(node.msg_type.replace("/","::"), node.msg_type.replace("/","::")))
+
+        print("{")
         for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
             nam = fields[ind][0]
             lvl = fields[ind][1]
@@ -184,38 +183,50 @@ def preview_write_codegen():
                 print("::Arp::Type::Grpc::ObjectType* {} = {}->mutable_structvalue()->add_structelements();"
                     .format(var_name, upper))
 
-            # Line 2 of boilerplate code
-            if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                print("{}->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);".format(var_name))
-            else:
-                print("{}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
-
-            # Line 3 of boilerplate code
-            if typ != "STRUCT":
-                if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                    array_var = var_name+"_array"
-                    array_typ = typ.split('[')[0] # Get the type of the array
-                    print("::Arp::Type::Grpc::TypeArray* {} = {}->mutable_arrayvalue();".format(array_var, var_name))
-                    print("for (auto datum : data_to_pack.{})".format(nam))
-                    print("{")
-                    print("  ObjectType* elem = {}->add_arrayelements();".format(array_var))
-                    print("  elem->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(get_grpc_type(array_typ)))
-                    print("  elem->set_{}value(datum);".format(array_typ))
-                    print("}")
+                # Line 2 of boilerplate code
+                # Assuming from empirical evidence that fixed length array types have '[' in the type names
+                # and variable length arrays have 'sequence' in the type names
+                if "[" in typ or "sequence" in typ: 
+                    print("{}->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);".format(var_name))
                 else:
-                    print("{}->set_{}value({});".format(var_name, typ, nam))
-            print("")
+                    print("{}->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(var_name, grpc_typ))
+
+                # Line 3 of boilerplate code
+                if typ != "STRUCT":
+                # Assuming from empirical evidence that fixed length array types have '[' in the type names
+                # and variable length arrays have 'sequence' in the type names
+                    if "[" in typ or "sequence" in typ: 
+                        array_typ = typ.split('[')[0] if "[" in typ else typ.split('<')[1].split('>')[0]
+                        array_var = var_name+"_array"
+                        print("::Arp::Type::Grpc::TypeArray* {} = {}->mutable_arrayvalue();".format(array_var, var_name))
+                        print("for (auto datum : data_to_pack.{})".format(nam))
+                        print("{")
+                        print("  ObjectType* elem = {}->add_arrayelements();".format(array_var))
+                        print("  elem->set_typecode(::Arp::Type::Grpc::CoreType::{});".format(get_grpc_type(array_typ)))
+                        print("  elem->set_{}value(datum);".format(array_typ))
+                        print("}")
+                    else:
+                        print("{}->set_{}value(data_to_pack.{});".format(var_name, typ, nam))
+                print("")
+        print("}")
 
 def preview_read_codegen():
     import param_parser
     params = param_parser.ParamParser()
     for node in params.nodes_:
-        print("----------"+node.header_name+"---------------")
+        print("----------"+node.msg_type+"---------------")
         # locate does a lexical cast from a string to a type that can be found in sys.path
-        fields = decompose_ros_msg_type(locate(extract_import_names(node.header_name)))
+        fields = decompose_ros_msg_type(locate(node.msg_type.replace("/",".")))
         fields.insert(0,("grpc_object", 0, "STRUCT")) #  Insert the received grpc_object as the uppermost base struct
 
         parent_dict = {}
+
+        print("template <>")
+        print("inline void unpackReadObject<{}>(const ObjectType &grpc_object, {}& unpack_to_data)"
+              .format(node.msg_type.replace("/","::"),
+                      node.msg_type.replace("/","::")))
+
+        print("{")
         for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
             nam = fields[ind][0]
             lvl = fields[ind][1]
@@ -233,20 +244,19 @@ def preview_read_codegen():
 
             print("ObjectType {} = {}.structvalue().structelements({});".format(var_name, upper, child_index))
             if typ != "STRUCT":
-                if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                    array_size = typ.split('[')[1].split(']')[0] # Extract size part from expected format xx[xx]
-                    if array_size == "": # Variable length arrays do not have size specified in the .msg file, skip handling these
-                        # @TODO: Investigate how to parse variable size arrays
-                        print("### ARRAY OF UNKNOWN SIZE, SKIPPING")
-                    else:
-                        print("for (size_t i = 0; i < {}; i++))".format(array_size))
-                        print("{")
-                        print("  unpack_to_data.{}[i] = {}.arrayvalue().arrayelements(i).doublevalue();"
-                            .format(nam,var_name))
-                        print("}")
+            # Assuming from empirical evidence that fixed length array types have '[' in the type names
+            # and variable length arrays have 'sequence' in the type names
+                if "[" in typ or "sequence" in typ: 
+                    array_typ = typ.split('[')[0] if "[" in typ else typ.split('<')[1].split('>')[0]
+                    array_typ = "double" if array_typ=="float64" else array_typ
+                    print("  for (int i = 0; i < {}.arrayvalue().arrayelements_size(); i++)".format(var_name))
+                    print("  {")
+                    print("    unpack_to_data.{}[i] = {}.arrayvalue().arrayelements(i).{}value();".format(nam,var_name, array_typ))
+                    print("  }")
                 else:
-                    print("unpack_to_data.{} = {}.{}value();".format(nam, var_name, typ))
+                    print("  unpack_to_data.{} = {}.{}value();".format(nam, var_name, typ))
             print("")
+        print("}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Program designed to be used by cog codegen. Can be run manually to \

@@ -34,12 +34,20 @@ add_custom_target(
   COMMENT "COGGING"
 )
 
+list(APPEND MSG_TYPES_TO_LINK
+    geometry_msgs
+    nav_msgs
+    std_msgs
+)
+
+# Find all required messages
+foreach(msg ${MSG_TYPES_TO_LINK})
+  find_package(${msg} REQUIRED)
+endforeach()
+
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(nav_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
 
@@ -69,11 +77,14 @@ add_executable(phoenix_bridge_node src/phoenix_bridge_node.cpp
                                     ${Sources})
 target_link_libraries(phoenix_bridge_node  gRPC::gpr gRPC::grpc gRPC::grpc++)
 add_dependencies(phoenix_bridge_node cog)
-ament_target_dependencies(phoenix_bridge_node
-                            rclcpp
-                            std_msgs
-                            nav_msgs
-                            geometry_msgs)
+ament_target_dependencies(phoenix_bridge_node rclcpp ${MSG_TYPES_TO_LINK})
+target_include_directories(phoenix_bridge_node
+    PUBLIC
+    $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
+)
 
 add_executable(phoenix_io_services_node src/phoenix_io_services_node.cpp
                                         src/phoenix_io_services.cpp
@@ -82,25 +93,14 @@ add_executable(phoenix_io_services_node src/phoenix_io_services_node.cpp
 add_dependencies(phoenix_io_services_node ${PROJECT_NAME})
 target_link_libraries(phoenix_io_services_node  gRPC::gpr gRPC::grpc gRPC::grpc++)
 rosidl_target_interfaces(phoenix_io_services_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
-ament_target_dependencies(phoenix_io_services_node
-                            rclcpp)
-
-if(rclcpp_FOUND)
-  target_include_directories(phoenix_bridge_node
-      PUBLIC
-      $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
-  )
-  target_include_directories(phoenix_io_services_node
-      PUBLIC
-      $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
-  )
-endif()
+ament_target_dependencies(phoenix_io_services_node rclcpp)
+target_include_directories(phoenix_io_services_node
+    PUBLIC
+    $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
+)
 
 install(TARGETS
   phoenix_bridge_node
@@ -151,11 +151,7 @@ if(BUILD_TESTING)
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>)
-  ament_target_dependencies(test_write_conversions
-                              rclcpp
-                              std_msgs
-                              nav_msgs
-                              geometry_msgs)
+  ament_target_dependencies(test_write_conversions rclcpp ${MSG_TYPES_TO_LINK})
 
   ament_add_gtest(test_read_conversions test/test_read_conversions.cpp ${Headers} ${Sources})
   target_link_libraries(test_read_conversions  gRPC::gpr gRPC::grpc gRPC::grpc++)
@@ -164,11 +160,7 @@ if(BUILD_TESTING)
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>)
-  ament_target_dependencies(test_read_conversions
-                              rclcpp
-                              std_msgs
-                              nav_msgs
-                              geometry_msgs)
+  ament_target_dependencies(test_read_conversions rclcpp ${MSG_TYPES_TO_LINK})
 
   # Component testing
   find_package(launch_testing_ament_cmake)

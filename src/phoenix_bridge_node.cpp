@@ -31,12 +31,12 @@ int main(int argc, char ** argv)
 
   sys.path.append(os.getcwd()) # Necessary when colcon build invokes this script
 
-  from phoenix_bridge.param_parser import ParamParser, getResolvedTypeName
+  from phoenix_bridge.param_parser import ParamParser
 
   parser = ParamParser()
   for node in parser.nodes_:
         cog.outl("auto {} = std::make_shared<BridgeType<{}>>(\"{}\");"
-              .format(node.node_name, getResolvedTypeName(node.header_name), node.node_name))
+              .format(node.node_name, node.msg_type.replace("/","::"), node.node_name))
         cog.outl("mte.add_node({});".format(node.node_name))
         cog.outl()
   ]]]*/

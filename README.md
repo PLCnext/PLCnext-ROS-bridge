@@ -4,6 +4,25 @@ ROS package to bridge ROS Noetic to PLCnext devices. Requires the dependencies f
 
 The main principle is that this package can parse an interface description file and generate the code required for setting up bridging topics for the ROS msg types as specified.
 
+- [PHOENIX BRIDGE](#phoenix-bridge)
+  - [Main features](#main-features)
+    - [The Interface Description File (IDF)](#the-interface-description-file-idf)
+    - [Generation of specified code](#generation-of-specified-code)
+    - [Launching the bridge](#launching-the-bridge)
+    - [IO Services](#io-services)
+    - [Parsers](#parsers)
+  - [Requirements](#requirements)
+  - [Usage](#usage)
+    - [From Source](#from-source)
+  - [Developer Guide](#developer-guide)
+    - [Code generation with Cog](#code-generation-with-cog)
+    - [Scaling codegen for more message types](#scaling-codegen-for-more-message-types)
+    - [Linting](#linting)
+    - [Unit Testing](#unit-testing)
+    - [Component Testing](#component-testing)
+    - [Integration Testing](#integration-testing)
+  - [CI/CD](#cicd)
+
 ## Main features
 ### The Interface Description File (IDF)
 
@@ -12,9 +31,7 @@ The [Interface description file](https://gitlab.cc-asp.fraunhofer.de/ipa326/phoe
 * The primary entries are always node names. For each node, the ROS2 parameters are declared under the namespace `ros__parameters`.
 * The first parameter is alwas `grpc` and requires the `grpc.address` param to be set to the correct value to communicate with the grpc server on the PLC. A typical value is `unix:/run/plcnext/grpc.sock`.
 * The second parameter is always `msg_type`. This dictates which ROS2 msg type name the node should bridge.
-* The third parameter `header_name` is optional. This is required if the C++ header file name is different from the ROS2 msg type name, otherwise can be omitted. (Ex: msg: `nav_msgs/msg/Odom` but C++ header: `nav_msgs/msg/odometry.hpp`).
-> NOTE: Do not type the `.hpp` part of the header name. 
-* The next two parameters `publishers` and `subscribers` is optional. These are required if publishing and subscribing topics respectively are to be created for the type of this node. If one or both are omitted, then those type of topics are simply not generated at launch time. Both of them have 3 list type sub-parameters, :
+* The next two parameters `publishers` and `subscribers` are optional. These are required if publishing and subscribing topics respectively are to be created for the type of this node. If one or both are omitted, then those type of topics are simply not generated at launch time. Both of them have 3 list type sub-parameters, :
     * `topics` [list of strings]- the names of the topics that should be created
     * `datapaths` [list of strings]- the instance paths to the variable in the global dataspace of the PLC corresponding per index position to the above topics.
     * `frequencies`[list of integers]- the frequencies corresponding per index position to the above topics at which data on the topic is updated.
@@ -116,7 +133,7 @@ Install PLC related requirements by referring to the latest guidelines from Phoe
 This package can be compiled from source and launched to setup the bridge. This must be done from a docker image with correctly installed dependencies running on the PLC to fully function.
 
 * Update the IDF and specify which topics are needed, clustered by msg types (See above for more info)
-* Build the package from the workspace directory after sourcing ROS: `colcon build --symlink-install`
+* Build the package from the workspace directory after sourcing ROS: `colcon build --symlink-install --event-handlers console_direct+`
 * Source the workspace: `source install/local_setup.bash`
 * Launch the bridge to create topics & IO services: `ros2 launch phoenix_bridge launch_phoenix_bridge.py`
 
@@ -146,6 +163,16 @@ Tests can be manually run as follows:
 3. See results: `colcon test-result --verbose`
 
 Tests shall also be run by CI automatically when code is pushed to gitlab.
+
+### Scaling codegen for more message types
+
+The main infrastructure to parse ROS2 message types and generate code is in place. However, when scaling up this bridge to parse more message types, there are some parts of the code that might need to be expanded.
+
+1. Type name differences - Some type names are inconsistent between the [ROS2 IDL](https://design.ros2.org/articles/idl_interface_definition.html) and protobuf/grpc. For example, IDL denotes `boolean` whereas protobuf denotes `bool`. Since codegen is templated by strings, this could break the code. Each such exceptional case has to be handled individually, and is currently done in the function `phoenix_bridge/msg_parser.py/decompose_ros_msg_type()/#Line65` - [relative_link](phoenix_bridge/msg_parser.py#L65). The target is to change IDL to match protobuf.
+
+2. Type casting - The protobuf types need to be cast into [IEC types](https://en.wikipedia.org/wiki/IEC_61131-3#Data_types), but more specifically, the types supported by PLCnext as seen in `ArpTypes.pb.h/CoreType` - [relative_link](include/phoenix_bridge/ServiceStubs/ArpTypes.pb.h#L81). This casting is handled in the [msg_parser](phoenix_bridge/msg_parser.py#L89) through the `TypesDict` dictionary. This dictionary has a few type castings already defined, but is not an exhaustive list. When new types are encountered which are undefined, the message `<type>_CASTING_UNDEFINED` can be seen in the generated code. To avoid/resolve this, `TypesDict` has to be extended by defining more casting pairs. The target is to cast from IDL type to PLCnext type.
+
+3. Type linking - In order to compile the package properly, when new ROS2 msg libraries are included, CMakeLists.txt should also be extended to include these so they can be linked. This is done by adding the type library to the variable [MSG_TYPES_TO_LINK](CMakeLists.txt#L37). Furthermore, `package.xml` should also be extended to add dependencies to the new libraries [here](package.xml#L23). This linking list is currently kept to the minimum used, in order to avoid linking every ROS type and bloating the package too much.
 
 ### Linting
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ###
 ### Copyright 2022 Fraunhofer IPA
 ###
@@ -14,8 +16,6 @@
 ### limitations under the License.
 ###
 
-#!/usr/bin/env python3
-
 """
 This script extracts parameters from the param file and stores them in an internal model that can be easily traversed.
 Designed to be used by cog to generate C++ code at build time.
@@ -23,9 +23,10 @@ Running this script directly from the base package directory like phoenix_bridge
      (after sourcing ROS) shows the model of the param file that is built
 """
 
-from numpy import size
 import yaml
 import os
+import re
+from numpy import size
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -47,22 +48,43 @@ class BridgeType:
     """ Define the struct for a BridgeType """
     node_name: str
     msg_type: str
-    header_name : str
     grpc: CommPort
     publishers: List[Port]
     subscribers: List[Port]
 
+def getSnakeCase(word):
+    """
+    Make an underscored, lowercase form from the expression in the string.
+    Copied source code from python library "infelction"
+    https://inflection.readthedocs.io/en/latest/_modules/inflection.html#underscore
 
-def getResolvedTypeName(typename: str):
-        """ Converts the ROS msg typename into a fully scope resolved C++ class name """
-        parts = typename.split("/")
-        result = ""
-        for i in range(size(parts)):
-            if i < size(parts) - 1:
-                result = result + parts[i] + "::"
-            else:
-                result = result + parts[i].title()
-        return result
+    Example::
+
+        >>> underscore("DeviceType")
+        'device_type'
+
+    As a rule of thumb you can think of :func:`underscore` as the inverse of
+    :func:`camelize`, though there are cases where that does not hold::
+
+        >>> camelize(underscore("IOError"))
+        'IoError'
+
+    """
+    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r'\1_\2', word)
+    word = re.sub(r"([a-z\d])([A-Z])", r'\1_\2', word)
+    word = word.replace("-", "_")
+    return word.lower()
+
+# def getResolvedTypeName(typename: str):
+#         """ Converts the ROS msg typename into a fully scope resolved C++ class name """
+#         parts = typename.split("/")
+#         result = ""
+#         for i in range(size(parts)):
+#             if i < size(parts) - 1:
+#                 result = result + parts[i] + "::"
+#             else:
+#                 result = result + parts[i].title()
+#         return result
 
 class ParamParser(object):
     """
@@ -85,16 +107,11 @@ class ParamParser(object):
                 return
             rosparams = params_[node]['ros__parameters']
 
-            # Safe get msg_type and header_name rosparam
+            # Safe get msg_type  rosparam
             if "msg_type" not in rosparams:
                 print(node, ": msg_type not defined as a rosparam!! Exiting")
                 return
             msg_type = rosparams['msg_type']
-
-            if "header_name" in rosparams:
-                header_name = rosparams['header_name']
-            else:
-                header_name = rosparams['msg_type'].lower()
 
             # Safe get grpc params
             if "grpc" not in rosparams or "address" not in rosparams['grpc']:
@@ -137,11 +154,9 @@ class ParamParser(object):
 
             self.nodes_.append(BridgeType(node,
                                    msg_type,
-                                   header_name,
                                    CommPort(grpc_address, grpc_type),
                                    publishers_list,
                                    subscribers_list))
-
 
 if __name__ == "__main__":
     obj = ParamParser()
@@ -149,8 +164,8 @@ if __name__ == "__main__":
     for node in obj.nodes_:
         print(node.node_name)
         print(" Msg type-", node.msg_type)
-        print(" C++ resolved class-", getResolvedTypeName(node.msg_type))
-        print(" C++ include header-", node.header_name,)
+        print(" C++ resolved class-", node.msg_type.replace("/","::"))
+        print(" C++ include header-", getSnakeCase(node.msg_type)+".hpp")
         print(" gRPC channel- ", node.grpc.address, node.grpc.type)
         print(" Ports-")
         for pub in node.publishers:
