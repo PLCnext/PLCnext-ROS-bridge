@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>phoenix_bridge</name>
-  <version>0.4.2</version>
+  <version>0.4.3</version>
   <description>The phoenix_bridge package</description>
 
   <maintainer email="phoenix_or_ipa@todo.todo">todo</maintainer>

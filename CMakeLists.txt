@@ -17,46 +17,52 @@ add_custom_target(
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  std_msgs
-  geometry_msgs
-  nav_msgs
   message_generation
   roslint
   rostest
 )
 find_package(gRPC CONFIG REQUIRED)
 
+list(APPEND MSG_TYPES_TO_LINK
+    geometry_msgs
+    nav_msgs
+    std_msgs
+)
+
 add_message_files(
   FILES
   SetIO.msg
-)
+  )
 
-add_service_files(
-  FILES
-  AnalogIO.srv
-  BatchGetIO.srv
-  BatchSetIO.srv
-  SingleGetIO.srv
-  SingleSetIO.srv
-)
+  add_service_files(
+    FILES
+    AnalogIO.srv
+    BatchGetIO.srv
+    BatchSetIO.srv
+    SingleGetIO.srv
+    SingleSetIO.srv
+    )
 
-catkin_python_setup()
+    catkin_python_setup()
 
-generate_messages(
-  DEPENDENCIES
-  std_msgs
+    generate_messages(
+      DEPENDENCIES
+      std_msgs
 )
 
 catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS
-    geometry_msgs
-    message_runtime
-    nav_msgs
-    roscpp
-    roslint
-    std_msgs
-)
+  roscpp
+  roslint
+  std_msgs
+  )
+
+# Find all required messages
+foreach(msg ${MSG_TYPES_TO_LINK})
+  find_package(${msg} REQUIRED)
+  catkin_package(CATKIN_DEPENDS ${msg})
+endforeach()
 
 include_directories(
   include
