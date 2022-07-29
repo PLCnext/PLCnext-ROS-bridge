@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ###
 ### Copyright 2022 Fraunhofer IPA
 ###
@@ -13,8 +15,6 @@
 ### See the License for the specific language governing permissions and
 ### limitations under the License.
 ###
-
-#!/usr/bin/env python3
 
 import yaml
 import os
@@ -42,5 +42,8 @@ def namespace_format(type: typing.Tuple[str, str]):
 
 if __name__ == "__main__":
     obj = ParamParser()
-    for type in obj.types_:
-        print("{}".format(header_format(type)))
+    for typ in obj.types_:
+        print("----------type", typ,"----------------")
+        print("C++ include: {}".format(header_format(typ)))
+        print("C++ namespace: {}".format(namespace_format(typ)))
+        

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ###
 ### Copyright 2022 Fraunhofer IPA
 ###
@@ -14,16 +16,10 @@
 ### limitations under the License.
 ###
 
-#!/usr/bin/env python3
-
-import sys
 import argparse
 
 from pydoc import locate
 from numpy import size
-
-from nav_msgs.msg import Odometry
-import nav_msgs
 
 """
 This script parses a ROS msg type to build an internal model that can easily be iterated through
@@ -32,25 +28,22 @@ Running this script directly from the base package directory like phoenix_bridge
      (after sourcing ROS) shows an example output of what cog could generate into include/phoenix_bridge/read\write_conversions.h
 """
 
-def get_slots_and_types(a_type: dict):
-    slots = []
-    slot_types = []
-    try:  # If the type cannot be decomposed as a dict, return None
-        items = list(a_type.__dict__.items())
-    except AttributeError:
-        return
-    try:
-        slots = items[5][1]  # All ROS1 msg types have 6th dict field as __slots__
-        slot_types = items[6][1] # and 7th fiels as __slot_types
-    except IndexError:
-        return
+def adjust_type(a_type: str):
+    """
+    Fix type naming difference between C++ and ROS msg languages.
+    Ex: boolean -> bool, float64 -> double etc..
+    """
 
-    slots_and_types = {}
-    for i in  range(size(slots)):
-        slots_and_types[slots[i]] = slot_types[i]
+    if a_type == "float32":
+        return "float"
 
-    return slots_and_types
+    if a_type == "float64":
+        return "double"
 
+    if a_type == "float64":
+        return "double"
+
+    return a_type
 
 def decompose_ros_msg_type(msg_type):
     """
@@ -65,6 +58,29 @@ def decompose_ros_msg_type(msg_type):
             Ex: header has type STRUCT, header.stamp has type STRCUT & header.stamp.sec has type int32
 
     """
+
+    def get_slots_and_types(a_type: dict):
+        slots = []
+        slot_types = []
+        try:  # If the type cannot be decomposed as a dict, return None
+            items = list(a_type.__dict__.items())
+        except AttributeError:
+            return
+        try:
+            for item in items:
+                if item[0] == "__slots__":
+                    slots = item[1]
+                if item[0] == "_slot_types":
+                    slot_types = item[1]
+                    continue
+        except IndexError:
+            return
+
+        slots_and_types = {}
+        for i in  range(size(slots)):
+            slots_and_types[slots[i]] = slot_types[i]
+
+        return slots_and_types
 
     def get_type_name_from_parts(parts):
         """ Helper function. Concatenate non empty strings in a list of strings to form a complete type name """
@@ -83,7 +99,6 @@ def decompose_ros_msg_type(msg_type):
 
         @return List of raw tuples which contain the level (i.e. depth), name and type of fields in a ROS msg
         """
-
         def to_import_format(a_type: str):
             """ Helper function. Converts ros msg format to python import format. Ex: std_msgs/Header to std_msgs.msg.Header """
             parts = a_type.split("/")
@@ -145,11 +160,15 @@ def get_grpc_type(cpp_type:str):
     TypesDict =  {
         "string"  : "CT_String",
         "STRUCT"  : "CT_Struct",
+        "float"   : "CT_Real32",
+        "float32" : "CT_Real32",
         "float64" : "CT_Real64",
         "double"  : "CT_Real64",
         "int32"   : "CT_Int32",
         "uint32"  : "CT_Uint32",
-        "time"    : "CT_Real64"
+        "time"    : "CT_Real64",
+        "bool"    : "CT_Boolean",
+        "uint8"   : "CT_Uint8",
         }
 
     if cpp_type in TypesDict.keys():
@@ -187,7 +206,8 @@ def preview_write_codegen():
 
             # Handling special types
             # @TODO: How to handle time properly? CT_XX? set_XXvalue()??
-            typ = "double" if typ=="float64" else typ
+            typ = "double" if typ=="float64"  else typ
+            typ = "float" if typ=="float32"  else typ
 
             var_name = fields[ind][0].replace(".","_")
             grpc_typ = get_grpc_type(fields[ind][2])
@@ -254,7 +274,7 @@ def preview_read_codegen():
 
             # Handling special types
             # @TODO: How to handle time properly? CT_XX? set_XXvalue()??
-            typ = "double" if typ=="float64" else typ
+            typ = "double" if typ=="float64" or typ=="float32" else typ
 
             var_name = fields[ind][0].replace(".","_")
             grpc_typ = get_grpc_type(fields[ind][2])

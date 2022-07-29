@@ -104,7 +104,7 @@ namespace conversions
   sys.path.append(os.getcwd()) # Necessary when colcon build invokes this script
 
   from pydoc import locate
-  from src.parsers.msg_parser import decompose_ros_msg_type, get_grpc_type, get_upper_struct
+  from src.parsers.msg_parser import decompose_ros_msg_type, get_grpc_type, get_upper_struct, adjust_type
   from src.parsers.param_parser import ParamParser, header_format, namespace_format
 
   params = ParamParser()
@@ -123,11 +123,7 @@ namespace conversions
     for ind in range(1, len(fields)): # skip the 0th element, which is the base struct
         nam = fields[ind][0]
         lvl = fields[ind][1]
-        typ = fields[ind][2]
-
-        # Handling special types
-        # @TODO: How to handle time properly? CT_XX? set_XXvalue()??
-        typ = "double" if typ=="float64" else typ
+        typ = adjust_type(fields[ind][2])
 
         var_name = fields[ind][0].replace(".","_")
         grpc_typ = get_grpc_type(fields[ind][2])
@@ -155,8 +151,7 @@ namespace conversions
                 continue
             # Special handling of array types
             if "[" in typ: # Assuming from empirical evidence that array types have '[' in the type names
-                array_typ = typ.split('[')[0] # Get the type of the array
-                array_typ = "double" if array_typ=="float64" else array_typ
+                array_typ = adjust_type(typ.split('[')[0]) # Get the type of the array
                 cog.outl("  for (int i = 0; i < {}.arrayvalue().arrayelements_size(); i++)".format(var_name))
                 cog.outl("  {")
                 cog.outl("    unpack_to_data.{}[i] = {}.arrayvalue().arrayelements(i).{}value();".format(nam,var_name,array_typ))
@@ -295,6 +290,62 @@ namespace conversions
   {
     ObjectType data = grpc_object.structvalue().structelements(0);
     unpack_to_data.data = data.stringvalue();
+
+  }
+
+  //----------sensor_msgs/LaserScan---------------
+  template <>
+  inline void unpackReadObject<sensor_msgs::LaserScan>(const ObjectType &grpc_object, sensor_msgs::LaserScan& unpack_to_data)
+  {
+    ObjectType header_1 = grpc_object.structvalue().structelements(0);
+
+    ObjectType header_seq = header_1.structvalue().structelements(0);
+    unpack_to_data.header.seq = header_seq.uint32value();
+
+    ObjectType header_stamp = header_1.structvalue().structelements(1);
+    // time type is specially handled as a double type of 'sec.nsec'
+    double stamp_as_double = header_stamp.doublevalue();
+    double sec_as_double, nsec_as_double;
+    nsec_as_double = modf(stamp_as_double, &sec_as_double);  // Split the integral and decimal parts
+    uint32_t nsec_as_int = static_cast<uint32_t>(nsec_as_double * pow(10, 9)); // ROS1 time.nsec typically has 9 digit precision
+    unpack_to_data.header.stamp.sec = static_cast<uint32_t>(sec_as_double);
+    unpack_to_data.header.stamp.nsec = nsec_as_int;
+
+    ObjectType header_frame_id = header_1.structvalue().structelements(2);
+    unpack_to_data.header.frame_id = header_frame_id.stringvalue();
+
+    ObjectType angle_min = grpc_object.structvalue().structelements(1);
+    unpack_to_data.angle_min = angle_min.floatvalue();
+
+    ObjectType angle_max = grpc_object.structvalue().structelements(2);
+    unpack_to_data.angle_max = angle_max.floatvalue();
+
+    ObjectType angle_increment = grpc_object.structvalue().structelements(3);
+    unpack_to_data.angle_increment = angle_increment.floatvalue();
+
+    ObjectType time_increment = grpc_object.structvalue().structelements(4);
+    unpack_to_data.time_increment = time_increment.floatvalue();
+
+    ObjectType scan_time = grpc_object.structvalue().structelements(5);
+    unpack_to_data.scan_time = scan_time.floatvalue();
+
+    ObjectType range_min = grpc_object.structvalue().structelements(6);
+    unpack_to_data.range_min = range_min.floatvalue();
+
+    ObjectType range_max = grpc_object.structvalue().structelements(7);
+    unpack_to_data.range_max = range_max.floatvalue();
+
+    ObjectType ranges = grpc_object.structvalue().structelements(8);
+    for (int i = 0; i < ranges.arrayvalue().arrayelements_size(); i++)
+    {
+      unpack_to_data.ranges[i] = ranges.arrayvalue().arrayelements(i).floatvalue();
+    }
+
+    ObjectType intensities = grpc_object.structvalue().structelements(9);
+    for (int i = 0; i < intensities.arrayvalue().arrayelements_size(); i++)
+    {
+      unpack_to_data.intensities[i] = intensities.arrayvalue().arrayelements(i).floatvalue();
+    }
 
   }
 

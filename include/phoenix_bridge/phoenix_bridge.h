@@ -51,6 +51,7 @@ private:
   BridgeType<nav_msgs::Odometry> odometry_bridge_;
   BridgeType<geometry_msgs::Twist> twist_bridge_;
   BridgeType<std_msgs::String> string_bridge_;
+  BridgeType<sensor_msgs::LaserScan> laserscan_bridge_;
   // [[[end]]]
 
   ///

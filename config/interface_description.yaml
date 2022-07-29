@@ -31,3 +31,11 @@ std_msgs/String:
   subscribers:
     - [sub_string_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]
     - [sub_string_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 60]
+
+sensor_msgs/LaserScan:
+  publishers:
+    - [pub_laser_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]
+    - [pub_laser_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]
+  subscribers:
+    - [sub_laser_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]
+    - [sub_laser_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]

@@ -59,6 +59,11 @@ PhoenixBridge::PhoenixBridge(ros::NodeHandle nh)
     ROS_INFO_STREAM(" Spawing std_msgs/String bridge ");
     string_bridge_.init("std_msgs/String", nh);
   }
+  if (nh.hasParam("sensor_msgs/LaserScan"))
+  {
+    ROS_INFO_STREAM(" Spawing sensor_msgs/LaserScan bridge ");
+    laserscan_bridge_.init("sensor_msgs/LaserScan", nh);
+  }
   // [[[end]]]
 
   ///
