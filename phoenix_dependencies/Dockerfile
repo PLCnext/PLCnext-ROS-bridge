@@ -11,6 +11,8 @@ ARG ROSINSTALL_CI_JOB_TOKEN=
 ENV ROSINSTALL_CI_JOB_TOKEN $ROSINSTALL_CI_JOB_TOKEN
 ARG CI_JOB_TOKEN=
 ENV CI_JOB_TOKEN $CI_JOB_TOKEN
+ARG CMAKE_ARGS=
+ENV CMAKE_ARGS $CMAKE_ARGS
 RUN --mount=type=bind,from=builder,target=/builder \
     apt-get update -qq && \
     /builder/workspace.bash install_from_rosinstall /root/ws/src/dep.repo /root/ws/src/

@@ -8,6 +8,8 @@ FROM ${PREFIX}phoenix_dependencies_${ROS_DISTRO}${SUFFIX} as base
 FROM ${BUILDER_PREFIX}builder${BUILDER_SUFFIX} as builder
 
 FROM base as build
+ARG CMAKE_ARGS=
+ENV CMAKE_ARGS $CMAKE_ARGS
 COPY . /root/ws/src/phoenix_bridge/
 RUN --mount=type=bind,from=builder,target=/builder \
     apt-get update -qq && \
