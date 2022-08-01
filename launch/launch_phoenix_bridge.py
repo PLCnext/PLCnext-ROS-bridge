@@ -22,10 +22,10 @@ def generate_launch_description():
         )
 
     # Configuration file for the heartbeat detector
-    heartbeat_config = os.path.join(
+    liveliness_config = os.path.join(
         get_package_share_directory('phoenix_bridge'),
         'config',
-        'heartbeat_config.yaml'
+        'liveliness_config.yaml'
         )
         
     # Main bridge node
@@ -49,10 +49,10 @@ def generate_launch_description():
     # Heartbeat node
     node_heartbeat=Node(
         package = 'phoenix_bridge', 
-        name = 'heartbeat_detector',
-        executable = 'heartbeat_detector',
+        name = 'liveliness_check',
+        executable = 'liveliness_check',
         output='screen',
-        parameters = [config_bridge]
+        parameters = [liveliness_config]
     )
 
     ld.add_action(node_bridge)

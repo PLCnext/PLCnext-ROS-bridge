@@ -102,13 +102,13 @@ target_include_directories(phoenix_io_services_node
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
 )
 
-add_executable(heartbeat_detector src/heartbeat_detector.cpp
+add_executable(liveliness_check src/liveliness_check.cpp
                                         ${Headers}
                                         ${Sources})
-add_dependencies(heartbeat_detector ${PROJECT_NAME})
-target_link_libraries(heartbeat_detector  gRPC::gpr gRPC::grpc gRPC::grpc++)
-ament_target_dependencies(heartbeat_detector rclcpp std_msgs)
-target_include_directories(heartbeat_detector
+add_dependencies(liveliness_check ${PROJECT_NAME})
+target_link_libraries(liveliness_check  gRPC::gpr gRPC::grpc gRPC::grpc++)
+ament_target_dependencies(liveliness_check rclcpp std_msgs)
+target_include_directories(liveliness_check
     PUBLIC
     $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -119,7 +119,7 @@ target_include_directories(heartbeat_detector
 install(TARGETS
   phoenix_bridge_node
   phoenix_io_services_node
-  heartbeat_detector
+  liveliness_check
   DESTINATION lib/${PROJECT_NAME})
 
 # Python stuff
@@ -148,7 +148,7 @@ if(BUILD_TESTING)
     src/phoenix_bridge_node.cpp
     src/phoenix_io_services_node.cpp
     src/phoenix_io_services.cpp
-    src/heartbeat_detector.cpp
+    src/liveliness_check.cpp
   )
 
   ament_clang_format(${files_to_lint})
