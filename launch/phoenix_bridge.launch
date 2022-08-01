@@ -5,4 +5,9 @@
     <node pkg="phoenix_bridge" name="phoenix_bridge" type ="phoenix_bridge_node" output="screen">
     </node>
 
+    <rosparam command="load" file="$(find phoenix_bridge)/config/liveliness_config.yaml" />
+
+    <node pkg="phoenix_bridge" name="liveliness_check" type ="liveliness_check" output="screen">
+    </node>
+
 </launch>
