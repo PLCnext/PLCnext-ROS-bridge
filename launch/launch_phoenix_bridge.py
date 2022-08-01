@@ -20,6 +20,13 @@ def generate_launch_description():
         'config',
         'services_params.yaml'
         )
+
+    # Configuration file for the heartbeat detector
+    heartbeat_config = os.path.join(
+        get_package_share_directory('phoenix_bridge'),
+        'config',
+        'heartbeat_config.yaml'
+        )
         
     # Main bridge node
     node_bridge=Node(
@@ -39,6 +46,16 @@ def generate_launch_description():
         parameters = [config_services]
     )
 
+    # Heartbeat node
+    node_heartbeat=Node(
+        package = 'phoenix_bridge', 
+        name = 'heartbeat_detector',
+        executable = 'heartbeat_detector',
+        output='screen',
+        parameters = [config_bridge]
+    )
+
     ld.add_action(node_bridge)
     ld.add_action(node_services)
+    ld.add_action(node_heartbeat)
     return ld

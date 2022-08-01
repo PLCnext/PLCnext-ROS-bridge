@@ -11,6 +11,7 @@ The main principle is that this package can parse an interface description file 
     - [Launching the bridge](#launching-the-bridge)
     - [IO Services](#io-services)
     - [Parsers](#parsers)
+    - [Heartbeat Check](#heartbeat-check)
   - [Requirements](#requirements)
   - [Usage](#usage)
     - [From Source](#from-source)
@@ -116,6 +117,10 @@ There are two main parsing python scripts developed in this package. These parse
 
 * `phoenix_bridge/param_parser.py`: Offers functions to read the contents of the yaml file to extract the ROS msg types that need to be bridged. Used in all generated sections.
 * `phoenix_bridge/msg_parser.py`: Offers functions that parse ROS msg types to extract their underlying dictionary structure. Used mainly to generate conversion functions to transform data between grpc type and ROS msg type.
+
+### Heartbeat Check
+
+The bridge packs in a [heartbeat check node](src/heartbeat_detector.cpp), that polls a boolean variable on the PLC at a determined frequency and notifies if this bool does not show a heartbeat at the expected rate. All parameters are [configurable](config/heartbeat_config.yaml).
 
 ## Requirements
 

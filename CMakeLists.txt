@@ -102,9 +102,24 @@ target_include_directories(phoenix_io_services_node
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
 )
 
+add_executable(heartbeat_detector src/heartbeat_detector.cpp
+                                        ${Headers}
+                                        ${Sources})
+add_dependencies(heartbeat_detector ${PROJECT_NAME})
+target_link_libraries(heartbeat_detector  gRPC::gpr gRPC::grpc gRPC::grpc++)
+ament_target_dependencies(heartbeat_detector rclcpp std_msgs)
+target_include_directories(heartbeat_detector
+    PUBLIC
+    $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/ServiceStubs/Includes>
+)
+
 install(TARGETS
   phoenix_bridge_node
   phoenix_io_services_node
+  heartbeat_detector
   DESTINATION lib/${PROJECT_NAME})
 
 # Python stuff
@@ -133,6 +148,7 @@ if(BUILD_TESTING)
     src/phoenix_bridge_node.cpp
     src/phoenix_io_services_node.cpp
     src/phoenix_io_services.cpp
+    src/heartbeat_detector.cpp
   )
 
   ament_clang_format(${files_to_lint})
