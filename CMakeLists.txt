@@ -112,6 +112,22 @@ target_include_directories(phoenix_io_services
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/ServiceStubs/Includes>
 )
 
+add_executable(liveliness_check
+                    src/liveliness_check.cpp
+                    ${Headers} ${Sources})
+add_dependencies(liveliness_check ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(liveliness_check
+  gRPC::gpr gRPC::grpc gRPC::grpc++
+  ${catkin_LIBRARIES}
+)
+target_include_directories(liveliness_check
+    PUBLIC
+    $<BUILD_INTERFACE:${rclcpp_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/ServiceStubs>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/phoenix_bridge/ServiceStubs/Includes>
+)
+
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 

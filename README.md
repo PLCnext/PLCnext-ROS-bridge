@@ -11,6 +11,7 @@ The main principle is that this package can parse an interface description file 
     - [Launching the bridge](#launching-the-bridge)
     - [IO Services](#io-services)
     - [Parsers](#parsers)
+    - [Liveliness Check](#liveliness-check)
   - [Requirements](#requirements)
   - [Usage](#usage)
     - [From Source](#from-source)
@@ -84,6 +85,10 @@ There are two main parsing python scripts developed in this package. These parse
 
 * `src/parsers/param_parser.py`: Offers functions to read the contents of the yaml file to extract the ROS msg types that need to be bridged. Used in all generated sections.
 * `src/parsers/msg_parser.py`: Offers functions that parse ROS msg types to extract their underlying dictionary structure. Used mainly to generate conversion functions to transform data between grpc type and ROS msg type.
+
+### Liveliness Check
+
+The bridge also contains a [Liveliness Check node](src/liveliness_check.cpp) that periodically pings the PLC with a handshake mechanism to check if the connection is good. The variable to ping and timing can be [configured](config/liveliness_config.yaml).
 
 ## Requirements
 
