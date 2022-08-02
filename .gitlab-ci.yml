@@ -5,6 +5,8 @@ variables:
   PREFIX: "${CI_REGISTRY_IMAGE}/${CI_PIPELINE_ID}:"
   BUILDER_PREFIX: "registry.gitlab.cc-asp.fraunhofer.de/ipa326/docker_ros_builder/"
   BUILDER_SUFFIX: ":latest"
+  DEP_PREFIX: "registry.gitlab.cc-asp.fraunhofer.de/ipa326/phoenix_dependencies/"
+  DEP_SUFFIX: ":latest"
   ROSINSTALL_CI_JOB_TOKEN: "true"
   FOLDER: ${CI_JOB_NAME}
   ROS_DISTRO: ""
@@ -24,7 +26,6 @@ default:
 
 stages:
   - check_ros_distro
-  - phoenix_dependencies
   - phoenix_bridge
   - publish
   - cleanup
@@ -61,8 +62,8 @@ prepare:
     - >
       TARGET=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-};
       docker build --cache-from $TARGET --cache-from $TARGET_LATEST --cache-from $TARGET_BRANCH
-      --build-arg SUFFIX
-      --build-arg PREFIX
+      --build-arg DEP_PREFIX
+      --build-arg DEP_SUFFIX
       --build-arg BUILDER_PREFIX
       --build-arg BUILDER_SUFFIX
       --build-arg ROS_DISTRO
@@ -77,10 +78,6 @@ prepare:
   needs:
     - prepare
 
-phoenix_dependencies:
-  extends: .build
-  stage: phoenix_dependencies
-
 phoenix_bridge:
   extends: .build
   variables:
@@ -88,7 +85,6 @@ phoenix_bridge:
   stage: phoenix_bridge
   needs:
     - prepare
-    - phoenix_dependencies
 
 .publish:
   stage: publish
@@ -111,17 +107,10 @@ phoenix_bridge:
       docker tag ${PREFIX}${NAME}${SUFFIX} ${TARGET} && docker push ${TARGET}
   needs:
     - prepare
-    - phoenix_dependencies
     - phoenix_bridge
   rules :
     - if: $CI_COMMIT_TAG != null
       when: on_success
-
-
-publish:phoenix_dependencies:
-  extends: .publish
-  variables:
-    NAME: phoenix_dependencies_${ROS_DISTRO}
 
 publish:phoenix_bridge:
   extends: .publish
