@@ -1,5 +1,0 @@
-repositories:
-  phoenix_dependencies:
-    type: git
-    url: https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.cc-asp.fraunhofer.de/ipa326/phoenix_dependencies.git
-    version: heads/${ROS_DISTRO}

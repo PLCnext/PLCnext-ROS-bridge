@@ -1,10 +1,12 @@
 # syntax=docker/dockerfile:experimental
 ARG BUILDER_SUFFIX=
 ARG BUILDER_PREFIX=
+ARG DEP_PREFIX=
+ARG DEP_SUFFIX=
 ARG SUFFIX=
 ARG PREFIX=
 ARG ROS_DISTRO=
-FROM ${PREFIX}phoenix_dependencies_${ROS_DISTRO}${SUFFIX} as base
+FROM ${DEP_PREFIX}phoenix_dependencies_${ROS_DISTRO}${DEP_SUFFIX} as base
 FROM ${BUILDER_PREFIX}builder${BUILDER_SUFFIX} as builder
 
 FROM base as build
