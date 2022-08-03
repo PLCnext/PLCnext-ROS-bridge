@@ -1,1 +1,4 @@
-phoenix_dependencies
+.git
+.gitignore
+.gitlab-ci.yml
+.dockerignore
