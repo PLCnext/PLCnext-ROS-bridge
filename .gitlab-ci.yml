@@ -17,18 +17,22 @@ variables:
   TARGET_RELEASE: ${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_TAG//\//-}
   CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
 
-services:
-  - docker:dind
+.simple_runner:
+  tags: &simple_runner
+    - asprunner
 
-default:
-  tags:
-    - docker-build
+.docker_service_tag:
+  services: &docker_service
+    - docker:dind
+  tags: &docker_runner
+      - docker-build
 
 stages:
   - check_ros_distro
   - phoenix_bridge
   - publish
   - cleanup
+  - doc
 
 .common:
   docker_login:
@@ -36,6 +40,7 @@ stages:
 
 prepare:
   stage: check_ros_distro
+  tags: *simple_runner
   script:
     - |
       for distro in $ROS_DISTROS; do
@@ -56,6 +61,8 @@ prepare:
 
 .build:
   stage: ${CI_JOB_NAME}
+  services: *docker_service
+  tags: *docker_runner
   before_script:
     - !reference [.common, docker_login]
   script:
@@ -71,7 +78,6 @@ prepare:
       --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN
       --build-arg CMAKE_ARGS
       -t ${PREFIX}${NAME}${SUFFIX} ${FOLDER}
-  after_script:
     - docker push ${PREFIX}${NAME}${SUFFIX}
   variables:
     NAME: ${CI_JOB_NAME}_${ROS_DISTRO}
@@ -88,6 +94,8 @@ phoenix_bridge:
 
 .publish:
   stage: publish
+  services: *docker_service
+  tags: *docker_runner
   before_script:
     - !reference [.common, docker_login]
     - docker pull ${PREFIX}${NAME}${SUFFIX}
@@ -119,6 +127,7 @@ publish:phoenix_bridge:
 
 cleanup_job:
   image: alpine:latest
+  tags: *simple_runner
   stage: cleanup
   before_script:
     - apk add --no-cache curl
@@ -132,4 +141,19 @@ cleanup_job:
       if [[ ! -z "$image_id" ]]; then
         curl --request DELETE -H "PRIVATE-TOKEN: $API_TOKEN" "https://gitlab.cc-asp.fraunhofer.de/api/v4/projects/${CI_PROJECT_ID}/registry/repositories/${image_id}"
       fi
+  when: always
+
+doxygen-job:
+  stage: doc
+  tags: *simple_runner
+  image: ubuntu:latest
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq doxygen graphviz
+  script:
+    - doxygen Doxyfile
+    - mv doc/html/ public/
+  artifacts:
+    paths:
+    - public
   when: always
