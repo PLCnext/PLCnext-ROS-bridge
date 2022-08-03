@@ -1,3 +1,10 @@
+stages:
+  - check_ros_distro
+  - phoenix_bridge
+  - publish
+  - cleanup
+  - doc
+
 variables:
   DOCKER_BUILDKIT: 1
   DOCKER_TLS_CERTDIR: ""
@@ -17,26 +24,18 @@ variables:
   TARGET_RELEASE: ${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_TAG//\//-}
   CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
 
-.simple_runner:
-  tags: &simple_runner
-    - asprunner
-
-.docker_service_tag:
+.common:
   services: &docker_service
     - docker:dind
   tags: &docker_runner
       - docker-build
-
-stages:
-  - check_ros_distro
-  - phoenix_bridge
-  - publish
-  - cleanup
-  - doc
-
-.common:
-  docker_login:
+  tags: &simple_runner
+    - asprunner
+  docker_login_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  rules:
+    - if: &commit_tag '$CI_COMMIT_TAG != null'
+    - if: &merge_into_devel '$CI_COMMIT_REF_NAME =~ /devel/'
 
 prepare:
   stage: check_ros_distro
@@ -64,18 +63,20 @@ prepare:
   services: *docker_service
   tags: *docker_runner
   before_script:
-    - !reference [.common, docker_login]
+    - !reference [.common, docker_login_script]
   script:
     - >
-      TARGET=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-};
-      docker build --cache-from $TARGET --cache-from $TARGET_LATEST --cache-from $TARGET_BRANCH
+      docker build
+      --build-arg SUFFIX
+      --build-arg PREFIX
       --build-arg DEP_PREFIX
       --build-arg DEP_SUFFIX
       --build-arg BUILDER_PREFIX
       --build-arg BUILDER_SUFFIX
       --build-arg ROS_DISTRO
-      --build-arg ROSINSTALL_CI_JOB_TOKEN=$ROSINSTALL_CI_JOB_TOKEN
-      --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN
+      --build-arg ROSINSTALL_CI_JOB_TOKEN
+      --build-arg CI_JOB_TOKEN
+      --build-arg BUILDKIT_INLINE_CACHE=1
       --build-arg CMAKE_ARGS
       -t ${PREFIX}${NAME}${SUFFIX} ${FOLDER}
     - docker push ${PREFIX}${NAME}${SUFFIX}
@@ -97,7 +98,7 @@ phoenix_bridge:
   services: *docker_service
   tags: *docker_runner
   before_script:
-    - !reference [.common, docker_login]
+    - !reference [.common, docker_login_script]
     - docker pull ${PREFIX}${NAME}${SUFFIX}
   script:
     - |
@@ -117,8 +118,11 @@ phoenix_bridge:
     - prepare
     - phoenix_bridge
   rules :
-    - if: $CI_COMMIT_TAG != null || $CI_COMMIT_REF_NAME =~ /devel/
+    - if: *commit_tag
       when: on_success
+    - if: *merge_into_devel
+      when: on_success
+
 
 publish:phoenix_bridge:
   extends: .publish
