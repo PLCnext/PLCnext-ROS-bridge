@@ -1,0 +1,2 @@
+string datapath
+bool value

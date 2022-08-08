@@ -1,0 +1,4 @@
+string datapath
+bool value
+---
+bool status # If status=false, operation failed
