@@ -1,0 +1,6 @@
+string instance_path
+float64 value
+---
+string instance_path
+float64 value
+bool status

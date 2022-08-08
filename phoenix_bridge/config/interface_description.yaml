@@ -1,0 +1,47 @@
+# Organise the description file per bridging type
+# Each type can have several pubs and subs
+# The values of a given index of the 3 arrays - topics, datapaths and frequencies - are together considered when creating one topic
+#  Ex: publishers.topics[1], publishers.datapaths[1] & publishers.frequencies[1] are together considered to spawn pub[1]
+
+odom_bridge:
+  ros__parameters:
+    grpc:
+      address: "unix:/run/plcnext/grpc.sock"
+    msg_type: "nav_msgs/msg/Odometry" # Include header filename and Scope resolution is derived from this as well.
+
+    publishers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
+      topics: [pub_odom_1, pub_odom_2]
+      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data]
+      frequencies: [11, 12]
+    subscribers:
+      topics: [sub_odom_1, sub_odom_2]
+      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data]
+      frequencies: [13, 14]
+
+twist_bridge:
+  ros__parameters:
+    grpc:
+      address: "unix:/run/plcnext/grpc.sock"
+    msg_type: "geometry_msgs/msg/Twist"
+    publishers:
+      topics: [pub_twist_1, pub_twist_2]
+      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data]
+      frequencies: [11, 12]
+    subscribers:
+      topics: [sub_twist_1, sub_twist_2]
+      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data]
+      frequencies: [13, 14]
+
+string_bridge:
+  ros__parameters:
+    grpc:
+      address: "unix:/run/plcnext/grpc.sock"
+    msg_type: "std_msgs/msg/String"
+    publishers:
+      topics: [pub_string_1, pub_string_2]
+      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.string_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.string_data]
+      frequencies: [21, 22]
+    subscribers:
+      topics: [sub_string_1, sub_string_2]
+      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.string_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.string_data]
+      frequencies: [23, 24]

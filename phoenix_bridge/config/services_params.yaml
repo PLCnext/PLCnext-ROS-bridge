@@ -1,0 +1,7 @@
+# Params for services
+
+phoenix_services:
+  ros__parameters:
+    grpc:
+      address: "unix:/run/plcnext/grpc.sock"
+      type: "tcp"
