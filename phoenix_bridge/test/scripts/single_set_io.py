@@ -3,7 +3,7 @@
 import sys
 import time 
 
-from phoenix_bridge.srv import SingleSetIO
+from phoenix_interfaces.srv import SingleSetIO
 import rclpy
 from rclpy.node import Node
 

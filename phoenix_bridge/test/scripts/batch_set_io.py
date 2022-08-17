@@ -3,8 +3,8 @@
 import sys
 import time
 
-from phoenix_bridge.srv import BatchSetIO
-from phoenix_bridge.msg import SetIO
+from phoenix_interfaces.srv import BatchSetIO
+from phoenix_interfaces.msg import SetIO
 import rclpy
 from rclpy.node import Node
 
