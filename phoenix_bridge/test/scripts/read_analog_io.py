@@ -3,7 +3,7 @@
 import sys
 import time 
 
-from phoenix_bridge.srv import AnalogIO
+from phoenix_interfaces.srv import AnalogIO
 import rclpy
 from rclpy.node import Node
 
