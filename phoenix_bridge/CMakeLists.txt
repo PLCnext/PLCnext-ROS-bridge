@@ -73,7 +73,6 @@ add_executable(phoenix_io_services_node src/phoenix_io_services_node.cpp
                                         src/phoenix_io_services.cpp
                                         ${Headers}
                                         ${Sources})
-# add_dependencies(phoenix_io_services_node ${PROJECT_NAME})
 target_link_libraries(phoenix_io_services_node  gRPC::gpr gRPC::grpc gRPC::grpc++)
 ament_target_dependencies(phoenix_io_services_node rclcpp phoenix_interfaces ${MSG_TYPES_TO_LINK})
 target_include_directories(phoenix_io_services_node
@@ -87,7 +86,6 @@ target_include_directories(phoenix_io_services_node
 add_executable(liveliness_check src/liveliness_check.cpp
                                         ${Headers}
                                         ${Sources})
-# add_dependencies(liveliness_check ${PROJECT_NAME})
 target_link_libraries(liveliness_check  gRPC::gpr gRPC::grpc gRPC::grpc++)
 ament_target_dependencies(liveliness_check rclcpp ${MSG_TYPES_TO_LINK})
 target_include_directories(liveliness_check
@@ -118,7 +116,6 @@ if(BUILD_TESTING)
   find_package(ament_cmake_clang_format REQUIRED)
   find_package(ament_cmake_cpplint REQUIRED)
   find_package(ament_cmake_cppcheck REQUIRED)
-  find_package(ament_cmake_lint_cmake REQUIRED)
   find_package(ament_cmake_xmllint REQUIRED)
 
   set(files_to_lint
@@ -134,7 +131,6 @@ if(BUILD_TESTING)
   ament_clang_format(${files_to_lint})
   ament_cpplint(${files_to_lint} FILTERS "-build/include_order")
   ament_cppcheck(${files_to_lint})
-  ament_lint_cmake()
   ament_xmllint()
 
   # Unit testing
