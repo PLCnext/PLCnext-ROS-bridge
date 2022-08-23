@@ -158,7 +158,7 @@ inline void BridgeType<T>::spawnPublishers()
         } else {
           RCLCPP_ERROR_STREAM_ONCE(
             this->get_logger(),
-            sub_topics_[i] << " Failed to get data from PLC at " << sub_datapaths_[i]);
+            pub_topics_[i] << " Failed to get data from PLC at " << pub_datapaths_[i]);
         }
       }));
   }
