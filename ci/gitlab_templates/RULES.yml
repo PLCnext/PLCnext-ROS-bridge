@@ -1,0 +1,96 @@
+  variables:
+    ROS2_DEV_BRANCH: ros2/devel
+    ROS1_DEV_BRANCH: ros1/devel
+    ROS2_PREFIX: ros2
+    ROS1_PREFIX: ros1
+
+  .on_ros2:
+    rules:
+      - !reference [.rules-map, not_ros2_branch]
+      - !reference [.rules-map, allow_failure_distros]
+      - !reference [.rules-map, not_allow_failure_distros]
+
+  .on_ros1:
+    rules:
+      - !reference [.rules-map, not_ros1_branch]
+      - !reference [.rules-map, allow_failure_distros]
+      - !reference [.rules-map, not_allow_failure_distros]
+
+  .on_ros2_tag:
+    rules:
+      - !reference [.rules-map, not_ros2_branch]
+      - !reference [.rules-map, not_commit_tag]
+      - !reference [.rules-map, allow_failure_distros]
+      - !reference [.rules-map, not_allow_failure_distros]
+
+  .on_ros1_tag:
+    rules:
+      - !reference [.rules-map, not_ros1_branch]
+      - !reference [.rules-map, not_commit_tag]
+      - !reference [.rules-map, allow_failure_distros]
+      - !reference [.rules-map, not_allow_failure_distros]
+
+  .on_ros2_merge:
+    rules:
+      - !reference [.rules-map, not_ros2_branch]
+      - !reference [.rules-map, not_merge_into_ros2_devel]
+      - !reference [.rules-map, allow_failure_distros]
+      - !reference [.rules-map, not_allow_failure_distros]
+
+  .on_ros1_merge:
+    rules:
+      - !reference [.rules-map, not_ros1_branch]
+      - !reference [.rules-map, not_merge_into_ros1_devel]
+      - !reference [.rules-map, allow_failure_distros]
+      - !reference [.rules-map, not_allow_failure_distros]
+
+  .on_ros2_merge_tag:
+    rules:
+      - !reference [.rules-map, not_ros2_branch]
+      - !reference [.rules-map, not_merge_into_ros2_devel_and_tag]
+      - !reference [.rules-map, allow_failure_distros]
+      - !reference [.rules-map, not_allow_failure_distros]
+
+  .on_ros1_merge_tag:
+    rules:
+      - !reference [.rules-map, not_ros1_branch]
+      - !reference [.rules-map, not_merge_into_ros1_devel_and_tag]
+      - !reference [.rules-map, allow_failure_distros]
+      - !reference [.rules-map, not_allow_failure_distros]
+
+  .rules-map:
+    ros2_branch:
+      - if: $CI_COMMIT_REF_NAME =~ /ros2/
+        when: on_success
+    not_ros2_branch:
+      - if: $CI_COMMIT_REF_NAME !~ /^ros2.*/
+        when: never
+    not_ros1_branch:
+      - if: $CI_COMMIT_REF_NAME !~ /^ros1.*/
+        when: never
+    allow_failure_distros:
+      - if: $ROS_DISTRO !~ $DEFAULT_ROS_DISTROS
+        when: on_success
+        allow_failure: true
+    not_allow_failure_distros:
+      - if: $ROS_DISTRO =~ $DEFAULT_ROS_DISTROS
+        when: on_success
+        allow_failure: false
+    not_merge_into_ros1_devel:
+      - if: $CI_COMMIT_BRANCH != $ROS1_DEV_BRANCH
+        when: never
+    not_merge_into_ros2_devel:
+      - if: $CI_COMMIT_BRANCH != $ROS2_DEV_BRANCH
+        when: never
+    not_merge_into_ros2_devel_and_tag:
+      - if: $CI_COMMIT_BRANCH != $ROS2_DEV_BRANCH && $CI_COMMIT_TAG == null
+        when: never
+    not_merge_into_ros1_devel_and_tag:
+      - if: $CI_COMMIT_BRANCH != $ROS1_DEV_BRANCH && $CI_COMMIT_TAG == null
+        when: never
+    commit_tag:
+      - if: $CI_COMMIT_TAG != null
+        when: on_success
+    not_commit_tag:
+      - if: $CI_COMMIT_TAG == null
+        when: never
