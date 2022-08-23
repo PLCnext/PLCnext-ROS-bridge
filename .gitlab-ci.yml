@@ -56,7 +56,10 @@ variables:
       --build-arg BUILDKIT_INLINE_CACHE=1
       --build-arg CMAKE_ARGS
       -t ${PREFIX}${NAME}${SUFFIX} ${FOLDER}
-    - docker push ${PREFIX}${NAME}${SUFFIX}
+    - >
+      if [[ "$CI_COMMIT_REF_NAME" =~ "devel" ]] || [[ $CI_COMMIT_TAG ]]; then
+        docker push ${PREFIX}${NAME}${SUFFIX}
+      fi
   variables:
     NAME: ${CI_JOB_NAME}_${ROS_DISTRO}
 
@@ -97,7 +100,7 @@ phoenix_bridge_ros1:
   script:
     - |
       TARGET=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-}
-      if [ "$CI_COMMIT_REF_NAME" = "${ROS_DISTRO}/devel" ]; then
+      if [ "$CI_COMMIT_REF_NAME" =~ "devel" ]; then
         TARGET=$TARGET_LATEST
       fi
       if [ $CI_COMMIT_TAG ]; then
