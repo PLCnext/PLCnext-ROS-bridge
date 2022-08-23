@@ -75,8 +75,10 @@ class TestGoodProcess(unittest.TestCase):
 
         param_topics = []
         for node in params_:
-            param_topics += params_[node]['ros__parameters']['publishers']['topics']
-            param_topics += params_[node]['ros__parameters']['subscribers']['topics']
+            if "publishers" in params_[node]['ros__parameters']:
+                param_topics += params_[node]['ros__parameters']['publishers']['topics']
+            if "subscribers" in params_[node]['ros__parameters']:
+                param_topics += params_[node]['ros__parameters']['subscribers']['topics']
 
         for topic in param_topics:
             topic = "/"+topic
