@@ -340,6 +340,50 @@ namespace conversions
 
   }
 
+  template <> inline
+  void packWriteItem<std_msgs::msg::Float64>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, std_msgs::msg::Float64 data_to_pack)
+  {
+  grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+  ::Arp::Type::Grpc::ObjectType* data = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
+  data->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+  data->set_doublevalue(data_to_pack.data);
+
+  }
+
+  template <> inline
+  void packWriteItem<std_msgs::msg::Int64>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, std_msgs::msg::Int64 data_to_pack)
+  {
+  grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+  ::Arp::Type::Grpc::ObjectType* data = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
+  data->set_typecode(::Arp::Type::Grpc::CoreType::CT_Int64);
+  data->set_int64value(data_to_pack.data);
+
+  }
+
+  template <> inline
+  void packWriteItem<std_msgs::msg::Header>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, std_msgs::msg::Header data_to_pack)
+  {
+  grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+  ::Arp::Type::Grpc::ObjectType* stamp_1 = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
+  stamp_1->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+  ::Arp::Type::Grpc::ObjectType* stamp_sec = stamp_1->mutable_structvalue()->add_structelements();
+  stamp_sec->set_typecode(::Arp::Type::Grpc::CoreType::CT_Int32);
+  stamp_sec->set_int32value(data_to_pack.stamp.sec);
+
+  ::Arp::Type::Grpc::ObjectType* stamp_nanosec = stamp_1->mutable_structvalue()->add_structelements();
+  stamp_nanosec->set_typecode(::Arp::Type::Grpc::CoreType::CT_Uint32);
+  stamp_nanosec->set_uint32value(data_to_pack.stamp.nanosec);
+
+  ::Arp::Type::Grpc::ObjectType* frame_id = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
+  frame_id->set_typecode(::Arp::Type::Grpc::CoreType::CT_String);
+  frame_id->set_stringvalue(data_to_pack.frame_id);
+
+  }
+
   //[[[end]]]
 
   ///

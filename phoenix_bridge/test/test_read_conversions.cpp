@@ -23,6 +23,40 @@ TEST(ReadConversionTests, TestStringMsg)
     EXPECT_EQ(test_data, msg.data);
 }
 
+TEST(ReadConversionTests, TestDoubleMsg)
+{
+    double test_data = 12345.09876;
+    std_msgs::msg::Float64 msg;
+
+    IDataAccessServiceReadResponse reply;
+    ::Arp::Plc::Gds::Services::Grpc::ReadItem* read_item = reply.add__returnvalue();
+
+    ::Arp::Type::Grpc::ObjectType* data = read_item->mutable_value()->mutable_structvalue()->add_structelements();
+    data->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+    data->set_doublevalue(test_data);
+
+    conversions::unpackReadObject(read_item->value(), msg);
+
+    EXPECT_EQ(test_data, msg.data);
+}
+
+TEST(ReadConversionTests, TestIntMsg)
+{
+    int64_t test_data = 1234509876;
+    std_msgs::msg::Int64 msg;
+
+    IDataAccessServiceReadResponse reply;
+    ::Arp::Plc::Gds::Services::Grpc::ReadItem* read_item = reply.add__returnvalue();
+
+    ::Arp::Type::Grpc::ObjectType* data = read_item->mutable_value()->mutable_structvalue()->add_structelements();
+    data->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+    data->set_int64value(test_data);
+
+    conversions::unpackReadObject(read_item->value(), msg);
+
+    EXPECT_EQ(test_data, msg.data);
+}
+
 TEST(ReadConversionTests, TestTwistMsg)
 {
     geometry_msgs::msg::Twist twist_msg;
@@ -71,6 +105,42 @@ TEST(ReadConversionTests, TestTwistMsg)
     ASSERT_EQ(twist_msg.angular.y, 5.55);  // y
     ASSERT_EQ(twist_msg.angular.z, 6.66);  // z
 }
+
+TEST(ReadConversionTests, TestHeaderMsg)
+{
+    std_msgs::msg::Header header_msg;
+
+    IDataAccessServiceReadResponse reply;
+
+    ::Arp::Plc::Gds::Services::Grpc::ReadItem* read_item = reply.add__returnvalue();
+
+    read_item->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+    ::Arp::Type::Grpc::ObjectType* stamp_1 = read_item->mutable_value()->mutable_structvalue()->add_structelements();
+    stamp_1->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+    ::Arp::Type::Grpc::ObjectType* stamp_sec = stamp_1->mutable_structvalue()->add_structelements();
+    stamp_sec->set_typecode(::Arp::Type::Grpc::CoreType::CT_Int32);
+    stamp_sec->set_int32value(1658485862);
+
+    ::Arp::Type::Grpc::ObjectType* stamp_nanosec = stamp_1->mutable_structvalue()->add_structelements();
+    stamp_nanosec->set_typecode(::Arp::Type::Grpc::CoreType::CT_Uint32);
+    stamp_nanosec->set_uint32value(602742553);
+
+    ::Arp::Type::Grpc::ObjectType* frame_id = read_item->mutable_value()->mutable_structvalue()->add_structelements();
+    frame_id->set_typecode(::Arp::Type::Grpc::CoreType::CT_String);
+    frame_id->set_stringvalue("frame_id");
+
+    ObjectType test_grpc_object = reply._returnvalue(0).value();
+
+    conversions::unpackReadObject(test_grpc_object, header_msg);
+
+    ASSERT_EQ(header_msg.stamp.sec, 1658485862);
+    ASSERT_EQ((header_msg.stamp.nanosec), 602742553U);
+    ASSERT_EQ(header_msg.frame_id, "frame_id");
+}
+
+
 
 TEST(ReadConversionTests, TestOdomMsg)
 {

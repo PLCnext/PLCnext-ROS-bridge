@@ -8,40 +8,77 @@ odom_bridge:
     grpc:
       address: "unix:/run/plcnext/grpc.sock"
     msg_type: "nav_msgs/msg/Odometry" # Include header filename and Scope resolution is derived from this as well.
-
     publishers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
-      topics: [pub_odom_1, pub_odom_2]
-      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data]
-      frequencies: [11, 12]
-    subscribers:
-      topics: [sub_odom_1, sub_odom_2]
-      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data]
-      frequencies: [13, 14]
+      topics: [pub_odom]
+      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data]
+      frequencies: [40]
 
 twist_bridge:
   ros__parameters:
     grpc:
       address: "unix:/run/plcnext/grpc.sock"
     msg_type: "geometry_msgs/msg/Twist"
-    publishers:
-      topics: [pub_twist_1, pub_twist_2]
-      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data]
-      frequencies: [11, 12]
     subscribers:
-      topics: [sub_twist_1, sub_twist_2]
-      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data]
-      frequencies: [13, 14]
+      topics: [sub_twist]
+      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data]
+      frequencies: [100]
 
 string_bridge:
   ros__parameters:
     grpc:
       address: "unix:/run/plcnext/grpc.sock"
     msg_type: "std_msgs/msg/String"
-    publishers:
-      topics: [pub_string_1, pub_string_2]
-      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.string_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.string_data]
-      frequencies: [21, 22]
-    subscribers:
-      topics: [sub_string_1, sub_string_2]
-      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.string_data, Arp.Plc.Eclr/MainInstance.gRPC_Obj.string_data]
-      frequencies: [23, 24]
+    # Uncomment and populate with values as needed
+    # publishers:
+    #   topics: []
+    #   datapaths: []
+    #   frequencies: []
+    # subscribers:
+    #   topics: []
+    #   datapaths: []
+    #   frequencies: []
+
+double_bridge:
+  ros__parameters:
+    grpc:
+      address: "unix:/run/plcnext/grpc.sock"
+    msg_type: "std_msgs/msg/Float64"
+    # Uncomment and populate with values as needed
+    # publishers:
+    #   topics: []
+    #   datapaths: []
+    #   frequencies: []
+    # subscribers:
+    #   topics: []
+    #   datapaths: []
+    #   frequencies: []
+
+int_bridge:
+  ros__parameters:
+    grpc:
+      address: "unix:/run/plcnext/grpc.sock"
+    msg_type: "std_msgs/msg/Int64"
+    # Uncomment and populate with values as needed
+    # publishers:
+    #   topics: []
+    #   datapaths: []
+    #   frequencies: []
+    # subscribers:
+    #   topics: []
+    #   datapaths: []
+    #   frequencies: []
+
+header_bridge:
+  ros__parameters:
+    grpc:
+      address: "unix:/run/plcnext/grpc.sock"
+    msg_type: "std_msgs/msg/Header"
+    # Uncomment and populate with values as needed
+    # publishers:
+    #   topics: []
+    #   datapaths: []
+    #   frequencies: []
+    # subscribers:
+    #   topics: []
+    #   datapaths: []
+    #   frequencies: []
