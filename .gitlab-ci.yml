@@ -1,0 +1,119 @@
+# Build stages
+stages:
+  - container
+  - deploy 
+
+container:arm:
+  stage: container
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor 
+      --context $CI_PROJECT_DIR 
+      --dockerfile $CI_PROJECT_DIR/dockerfile
+      --destination plcnext-hello-world:${CI_COMMIT_SHORT_SHA}
+      --no-push
+      --tarPath plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.tar
+    - gzip ./plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.tar
+  allow_failure: false
+  when: manual
+  tags:
+    - shared-runner-kubernetes
+    - multi-arc
+  artifacts:
+    name: "container_arm"
+    paths:
+    - ./plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.tar.gz
+    when: on_success
+    expire_in: 10 minutes
+
+container:x86:
+  stage: container
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor 
+      --context $CI_PROJECT_DIR 
+      --dockerfile $CI_PROJECT_DIR/dockerfile_x86
+      --destination plcnext-hello-world:${CI_COMMIT_SHORT_SHA}
+      --no-push
+      --tarPath plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar
+    - gzip ./plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar
+  allow_failure: false
+  when: manual
+  tags:
+    - shared-runner-kubernetes
+    - multi-arc
+  artifacts:
+    name: "container_x86"
+    paths:
+    - ./plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar.gz
+    when: on_success
+    expire_in: 10 minutes
+
+## BUILD TestContainer and APP for ARM targets
+deploy:arm:
+  stage: deploy
+  image: 
+    name: debian:bookworm
+  before_script:
+    - apt-get update  
+    - apt-get install --yes squashfs-tools rpm
+  script:
+    - tar -tf plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.tar.gz --wildcards 'sha256*' >> ./image.id
+    - sed -i 's/[^:]*:\(.*\)/\1/' image.id
+    - mkdir app/images
+    - cp ./plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.tar.gz app/images/plcnext-hello-world.tar.gz
+    - >
+      sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
+- >
+      sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
+- >
+      sed -i "s/§§TARGETS§§/AXC F 2152,AXC F 1152/g" ./app/app_info.json
+- chmod +x app/initscript.sh
+    - mksquashfs app plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.app -force-uid 1001 -force-gid 1002
+  dependencies:
+    -  container:arm
+  artifacts:
+    name: "${CI_PROJECT_PATH_SLUG}-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - ./*.app
+    when: on_success
+    expire_in: 30 minutes
+
+## BUILD TestContainer and APP for x86 targets
+deploy:x86:
+  stage: deploy
+  image: 
+    name: debian:bookworm
+  before_script:
+    - apt-get update  
+    - apt-get install --yes squashfs-tools rpm
+  script:
+    - tar -tf plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar.gz --wildcards 'sha256*' >> ./image.id
+    - sed -i 's/[^:]*:\(.*\)/\1/' image.id
+    - mkdir app/images
+    - cp ./plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar.gz app/images/plcnext-hello-world.tar.gz
+    - >
+      sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
+- >
+      sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
+- >
+      sed -i "s/§§TARGETS§§/AXC F 3152,EPC 1522,EPC 1502/g" ./app/app_info.json
+- chmod +x app/initscript.sh
+    - mksquashfs app plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.app -force-uid 1001 -force-gid 1002
+  dependencies:
+    -  container:x86
+  artifacts:
+    name: "${CI_PROJECT_PATH_SLUG}-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - ./*.app
+    when: on_success
+    expire_in: 30 minutes
+
