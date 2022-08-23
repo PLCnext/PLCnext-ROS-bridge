@@ -44,6 +44,9 @@ for node in parser.nodes_:
 #include<nav_msgs/msg/odometry.hpp>
 #include<geometry_msgs/msg/twist.hpp>
 #include<std_msgs/msg/string.hpp>
+#include<std_msgs/msg/float64.hpp>
+#include<std_msgs/msg/int64.hpp>
+#include<std_msgs/msg/header.hpp>
 //[[[end]]]
 
 ///

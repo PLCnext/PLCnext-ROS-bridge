@@ -80,10 +80,11 @@ TypesDict =  {
     "float64" : "CT_Real64",
     "float"   : "CT_Real64",
     "double"  : "CT_Real64",
+    "uint8"   : "CT_Uint8",
     "int32"   : "CT_Int32",
     "uint32"  : "CT_Uint32",
-    "uint8"   : "CT_Uint8",
-    "bool"    : "CT_Boolean"
+    "int64"   : "CT_Int64",
+    "bool"    : "CT_Boolean",
     }
 
 def get_grpc_type(cpp_type:str):
