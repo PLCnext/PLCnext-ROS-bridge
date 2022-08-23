@@ -98,12 +98,12 @@ TEST(ReadConversionTests, TestTwistMsg)
 
     conversions::unpackReadObject(read_item->value(), twist_msg);
 
-    ASSERT_EQ(twist_msg.linear.x, 1.11);  // x
-    ASSERT_EQ(twist_msg.linear.y, 2.22);  // y
-    ASSERT_EQ(twist_msg.linear.z, 3.33);  // z
-    ASSERT_EQ(twist_msg.angular.x, 4.44);  // x
-    ASSERT_EQ(twist_msg.angular.y, 5.55);  // y
-    ASSERT_EQ(twist_msg.angular.z, 6.66);  // z
+    EXPECT_EQ(twist_msg.linear.x, 1.11);  // x
+    EXPECT_EQ(twist_msg.linear.y, 2.22);  // y
+    EXPECT_EQ(twist_msg.linear.z, 3.33);  // z
+    EXPECT_EQ(twist_msg.angular.x, 4.44);  // x
+    EXPECT_EQ(twist_msg.angular.y, 5.55);  // y
+    EXPECT_EQ(twist_msg.angular.z, 6.66);  // z
 }
 
 TEST(ReadConversionTests, TestHeaderMsg)
@@ -135,9 +135,9 @@ TEST(ReadConversionTests, TestHeaderMsg)
 
     conversions::unpackReadObject(test_grpc_object, header_msg);
 
-    ASSERT_EQ(header_msg.stamp.sec, 1658485862);
-    ASSERT_EQ((header_msg.stamp.nanosec), 602742553U);
-    ASSERT_EQ(header_msg.frame_id, "frame_id");
+    EXPECT_EQ(header_msg.stamp.sec, 1658485862);
+    EXPECT_EQ((header_msg.stamp.nanosec), 602742553U);
+    EXPECT_EQ(header_msg.frame_id, "frame_id");
 }
 
 
@@ -274,28 +274,28 @@ TEST(ReadConversionTests, TestOdomMsg)
 
     conversions::unpackReadObject(test_grpc_object, odom_msg);
 
-    ASSERT_EQ(odom_msg.header.stamp.sec, 1658485862);
-    ASSERT_EQ((odom_msg.header.stamp.nanosec), 602742553U);
-    ASSERT_EQ(odom_msg.header.frame_id, "header_frame_id");
-    ASSERT_EQ(odom_msg.child_frame_id, "child_frame_id");
-    ASSERT_EQ(odom_msg.pose.pose.position.x , 1.11);
-    ASSERT_EQ(odom_msg.pose.pose.position.y , 2.22);
-    ASSERT_EQ(odom_msg.pose.pose.position.z , 3.33);
-    ASSERT_EQ(odom_msg.pose.pose.orientation.x , 4.44);
-    ASSERT_EQ(odom_msg.pose.pose.orientation.y , 5.55);
-    ASSERT_EQ(odom_msg.pose.pose.orientation.z , 6.66);
-    ASSERT_EQ(odom_msg.pose.pose.orientation.w , 7.77);
+    EXPECT_EQ(odom_msg.header.stamp.sec, 1658485862);
+    EXPECT_EQ((odom_msg.header.stamp.nanosec), 602742553U);
+    EXPECT_EQ(odom_msg.header.frame_id, "header_frame_id");
+    EXPECT_EQ(odom_msg.child_frame_id, "child_frame_id");
+    EXPECT_EQ(odom_msg.pose.pose.position.x , 1.11);
+    EXPECT_EQ(odom_msg.pose.pose.position.y , 2.22);
+    EXPECT_EQ(odom_msg.pose.pose.position.z , 3.33);
+    EXPECT_EQ(odom_msg.pose.pose.orientation.x , 4.44);
+    EXPECT_EQ(odom_msg.pose.pose.orientation.y , 5.55);
+    EXPECT_EQ(odom_msg.pose.pose.orientation.z , 6.66);
+    EXPECT_EQ(odom_msg.pose.pose.orientation.w , 7.77);
     for (int i = 0; i < 36; i++)
     {
-      ASSERT_EQ(odom_msg.pose.covariance[i], i);
-      ASSERT_EQ(odom_msg.twist.covariance[i], i);
+      EXPECT_EQ(odom_msg.pose.covariance[i], i);
+      EXPECT_EQ(odom_msg.twist.covariance[i], i);
     }
-    ASSERT_EQ(odom_msg.twist.twist.linear.x , 8.88);
-    ASSERT_EQ(odom_msg.twist.twist.linear.y , 9.99);
-    ASSERT_EQ(odom_msg.twist.twist.linear.z , 10.101);
-    ASSERT_EQ(odom_msg.twist.twist.angular.x , 11.1111);
-    ASSERT_EQ(odom_msg.twist.twist.angular.y , 12.1212);
-    ASSERT_EQ(odom_msg.twist.twist.angular.z , 13.1313);
+    EXPECT_EQ(odom_msg.twist.twist.linear.x , 8.88);
+    EXPECT_EQ(odom_msg.twist.twist.linear.y , 9.99);
+    EXPECT_EQ(odom_msg.twist.twist.linear.z , 10.101);
+    EXPECT_EQ(odom_msg.twist.twist.angular.x , 11.1111);
+    EXPECT_EQ(odom_msg.twist.twist.angular.y , 12.1212);
+    EXPECT_EQ(odom_msg.twist.twist.angular.z , 13.1313);
 }
 
 int main(int argc, char ** argv)

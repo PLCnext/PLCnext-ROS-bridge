@@ -22,9 +22,9 @@ TEST(WriteConversionTests, TestStringMsg)
     std::string debugstr;
     google::protobuf::TextFormat::PrintToString(*grpc_object, &debugstr);
 
-    ASSERT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
+    EXPECT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
     /// Counted by first manually verifying debugstr
-    ASSERT_EQ(static_cast<int>(debugstr.find("StringValue: \"test_msg\"")), 121); // string.data
+    EXPECT_EQ(static_cast<int>(debugstr.find("StringValue: \"test_msg\"")), 121); // string.data
 }
 
 TEST(WriteConversionTests, TestDoubleMsg)
@@ -43,9 +43,9 @@ TEST(WriteConversionTests, TestDoubleMsg)
     std::string debugstr;
     google::protobuf::TextFormat::PrintToString(*grpc_object, &debugstr);
 
-    ASSERT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
+    EXPECT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
     /// Counted by first manually verifying debugstr
-    ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 12345.09876")), 121);
+    EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 12345.09876")), 121);
 }
 
 TEST(WriteConversionTests, TestIntMsg)
@@ -64,9 +64,9 @@ TEST(WriteConversionTests, TestIntMsg)
     std::string debugstr;
     google::protobuf::TextFormat::PrintToString(*grpc_object, &debugstr);
 
-    ASSERT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
+    EXPECT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
     /// Counted by first manually verifying debugstr
-    ASSERT_EQ(static_cast<int>(debugstr.find("Int64Value: 1234509876")), 120);
+    EXPECT_EQ(static_cast<int>(debugstr.find("Int64Value: 1234509876")), 120);
 }
 
 
@@ -92,14 +92,14 @@ TEST(WriteConversionTests, TestTwistMsg)
   std::string debugstr;
   google::protobuf::TextFormat::PrintToString(*grpc_object, &debugstr);
 
-  ASSERT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
+  EXPECT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
   /// Counted by first manually verifying debugstr
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 1.11")), 200);  // linear.x
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 2.22")), 293);  // linear.y
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 3.33")), 386);  // linear.z
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 4.44")), 560);  // angular.x
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 5.55")), 653);  // angular.y
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 6.66")), 746);  // angular.z
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 1.11")), 200);  // linear.x
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 2.22")), 293);  // linear.y
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 3.33")), 386);  // linear.z
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 4.44")), 560);  // angular.x
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 5.55")), 653);  // angular.y
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 6.66")), 746);  // angular.z
 }
 
 
@@ -122,11 +122,11 @@ TEST(WriteConversionTests, TestHeaderMsg)
   std::string debugstr;
   google::protobuf::TextFormat::PrintToString(*grpc_object, &debugstr);
 
-  ASSERT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
+  EXPECT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
   /// Counted by first manually verifying debugstr
-  ASSERT_EQ(static_cast<int>(debugstr.find("Int32Value: 111")) ,199);
-  ASSERT_EQ(static_cast<int>(debugstr.find("Uint32Value: 222")) , 290);
-  ASSERT_EQ(static_cast<int>(debugstr.find("StringValue: \"frame_id\"")), 384);
+  EXPECT_EQ(static_cast<int>(debugstr.find("Int32Value: 111")) ,199);
+  EXPECT_EQ(static_cast<int>(debugstr.find("Uint32Value: 222")) , 290);
+  EXPECT_EQ(static_cast<int>(debugstr.find("StringValue: \"frame_id\"")), 384);
 }
 
 TEST(WriteConversionTests, TestOdomMsg)
@@ -164,27 +164,27 @@ TEST(WriteConversionTests, TestOdomMsg)
   std::string debugstr;
   google::protobuf::TextFormat::PrintToString(*grpc_object, &debugstr);
 
-  ASSERT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
+  EXPECT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
   /// Counted by first manually verifying debugstr
-  ASSERT_EQ(static_cast<int>(debugstr.find("Int32Value: 111")) ,290);
-  ASSERT_EQ(static_cast<int>(debugstr.find("Uint32Value: 222")) , 397);
-  ASSERT_EQ(static_cast<int>(debugstr.find("StringValue: \"header_frame_id\"")), 515);
-  ASSERT_EQ(static_cast<int>(debugstr.find("StringValue: \"child_frame_id\"")), 623);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 1.11")),985);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 2.22")), 1110);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 3.33")), 1235);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 4.44")), 1481);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 5.55")), 1606);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 6.66")), 1731);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 7.77")), 1856);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 8.88")), 2622);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 9.99")), 6166);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 10.101")), 6291);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 11.11")), 6418);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 12.1212")), 6667);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 13.1313")), 6795);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 14.1414")), 6923);
-  ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 15.1515")), 7902);
+  EXPECT_EQ(static_cast<int>(debugstr.find("Int32Value: 111")) ,290);
+  EXPECT_EQ(static_cast<int>(debugstr.find("Uint32Value: 222")) , 397);
+  EXPECT_EQ(static_cast<int>(debugstr.find("StringValue: \"header_frame_id\"")), 515);
+  EXPECT_EQ(static_cast<int>(debugstr.find("StringValue: \"child_frame_id\"")), 623);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 1.11")),985);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 2.22")), 1110);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 3.33")), 1235);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 4.44")), 1481);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 5.55")), 1606);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 6.66")), 1731);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 7.77")), 1856);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 8.88")), 2622);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 9.99")), 6166);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 10.101")), 6291);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 11.11")), 6418);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 12.1212")), 6667);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 13.1313")), 6795);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 14.1414")), 6923);
+  EXPECT_EQ(static_cast<int>(debugstr.find("DoubleValue: 15.1515")), 7902);
 
 }
 
