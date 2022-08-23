@@ -27,6 +27,48 @@ TEST(WriteConversionTests, TestStringMsg)
     ASSERT_EQ(static_cast<int>(debugstr.find("StringValue: \"test_msg\"")), 121); // string.data
 }
 
+TEST(WriteConversionTests, TestDoubleMsg)
+{
+    std::string test_instance_path = "test_path";
+    std_msgs::msg::Float64 msg_to_test;
+    msg_to_test.data = 12345.09876;
+
+    IDataAccessServiceWriteRequest request;
+    ::Arp::Plc::Gds::Services::Grpc::WriteItem * grpc_object = request.add_data();
+    grpc_object->set_portname(test_instance_path);
+    grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+    conversions::packWriteItem(grpc_object, msg_to_test);
+
+    std::string debugstr;
+    google::protobuf::TextFormat::PrintToString(*grpc_object, &debugstr);
+
+    ASSERT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
+    /// Counted by first manually verifying debugstr
+    ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 12345.09876")), 121);
+}
+
+TEST(WriteConversionTests, TestIntMsg)
+{
+    std::string test_instance_path = "test_path";
+    std_msgs::msg::Int64 msg_to_test;
+    msg_to_test.data = 1234509876;
+
+    IDataAccessServiceWriteRequest request;
+    ::Arp::Plc::Gds::Services::Grpc::WriteItem * grpc_object = request.add_data();
+    grpc_object->set_portname(test_instance_path);
+    grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Int64);
+
+    conversions::packWriteItem(grpc_object, msg_to_test);
+
+    std::string debugstr;
+    google::protobuf::TextFormat::PrintToString(*grpc_object, &debugstr);
+
+    ASSERT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
+    /// Counted by first manually verifying debugstr
+    ASSERT_EQ(static_cast<int>(debugstr.find("Int64Value: 1234509876")), 120);
+}
+
 
 TEST(WriteConversionTests, TestTwistMsg)
 {
@@ -60,6 +102,32 @@ TEST(WriteConversionTests, TestTwistMsg)
   ASSERT_EQ(static_cast<int>(debugstr.find("DoubleValue: 6.66")), 746);  // angular.z
 }
 
+
+TEST(WriteConversionTests, TestHeaderMsg)
+{
+  std::string test_instance_path = "test_path";
+
+  std_msgs::msg::Header msg_to_test;
+  msg_to_test.stamp.sec = 111;
+  msg_to_test.stamp.nanosec = 222;
+  msg_to_test.frame_id = "frame_id";
+
+  IDataAccessServiceWriteRequest request;
+  ::Arp::Plc::Gds::Services::Grpc::WriteItem * grpc_object = request.add_data();
+  grpc_object->set_portname(test_instance_path);
+  grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+  conversions::packWriteItem(grpc_object, msg_to_test);
+
+  std::string debugstr;
+  google::protobuf::TextFormat::PrintToString(*grpc_object, &debugstr);
+
+  ASSERT_TRUE(debugstr.find("PortName: \"test_path\"") !=std::string::npos);
+  /// Counted by first manually verifying debugstr
+  ASSERT_EQ(static_cast<int>(debugstr.find("Int32Value: 111")) ,199);
+  ASSERT_EQ(static_cast<int>(debugstr.find("Uint32Value: 222")) , 290);
+  ASSERT_EQ(static_cast<int>(debugstr.find("StringValue: \"frame_id\"")), 384);
+}
 
 TEST(WriteConversionTests, TestOdomMsg)
 {

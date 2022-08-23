@@ -271,6 +271,38 @@ namespace conversions
 
   }
 
+  template <>
+  inline void unpackReadObject<std_msgs::msg::Float64>(const ObjectType &grpc_object, std_msgs::msg::Float64& unpack_to_data)
+  {
+    ObjectType data = grpc_object.structvalue().structelements(0);
+    unpack_to_data.data = data.doublevalue();
+
+  }
+
+  template <>
+  inline void unpackReadObject<std_msgs::msg::Int64>(const ObjectType &grpc_object, std_msgs::msg::Int64& unpack_to_data)
+  {
+    ObjectType data = grpc_object.structvalue().structelements(0);
+    unpack_to_data.data = data.int64value();
+
+  }
+
+  template <>
+  inline void unpackReadObject<std_msgs::msg::Header>(const ObjectType &grpc_object, std_msgs::msg::Header& unpack_to_data)
+  {
+    ObjectType stamp_1 = grpc_object.structvalue().structelements(0);
+
+    ObjectType stamp_sec = stamp_1.structvalue().structelements(0);
+    unpack_to_data.stamp.sec = stamp_sec.int32value();
+
+    ObjectType stamp_nanosec = stamp_1.structvalue().structelements(1);
+    unpack_to_data.stamp.nanosec = stamp_nanosec.uint32value();
+
+    ObjectType frame_id = grpc_object.structvalue().structelements(1);
+    unpack_to_data.frame_id = frame_id.stringvalue();
+
+  }
+
   //[[[end]]]
 
   ///

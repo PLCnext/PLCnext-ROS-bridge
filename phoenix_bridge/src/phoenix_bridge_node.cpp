@@ -49,6 +49,15 @@ int main(int argc, char ** argv)
   auto string_bridge = std::make_shared<BridgeType<std_msgs::msg::String>>("string_bridge");
   mte.add_node(string_bridge);
 
+  auto double_bridge = std::make_shared<BridgeType<std_msgs::msg::Float64>>("double_bridge");
+  mte.add_node(double_bridge);
+
+  auto int_bridge = std::make_shared<BridgeType<std_msgs::msg::Int64>>("int_bridge");
+  mte.add_node(int_bridge);
+
+  auto header_bridge = std::make_shared<BridgeType<std_msgs::msg::Header>>("header_bridge");
+  mte.add_node(header_bridge);
+
   // [[[end]]]
 
   std::cout << "Node starting" << std::endl;
