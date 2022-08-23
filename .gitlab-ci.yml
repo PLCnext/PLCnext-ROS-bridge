@@ -106,9 +106,21 @@ phoenix_bridge_ros1:
       if [ $CI_COMMIT_TAG ]; then
         convert_tag=${CI_COMMIT_TAG//\//-}
         distro_prefix=${ROS_DISTRO}-
-        remove_distro_tag=${convert_tag#"$distro_prefix"}
-        TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
-        TARGET=$TARGET_RELEASE
+        if [ $convert_tag =~ $distro_prefix ]; then
+          remove_distro_tag=${convert_tag#"$distro_prefix"}
+          TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
+          TARGET=$TARGET_RELEASE
+        fi
+        if [ $convert_tag =~ "ros1-" ]; then
+          remove_distro_tag=${convert_tag#"ros1-"}
+          TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
+          TARGET=$TARGET_RELEASE
+        fi
+        if [ $convert_tag =~ "ros2-" ]; then
+          remove_distro_tag=${convert_tag#"ros2-"}
+          TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
+          TARGET=$TARGET_RELEASE
+        fi
       fi
       docker tag ${PREFIX}${NAME}${SUFFIX} ${TARGET} && docker push ${TARGET}
   needs:
