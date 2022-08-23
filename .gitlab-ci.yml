@@ -1,27 +1,27 @@
+include:
+  - local: ci/gitlab_templates/RULES.yml
+
 stages:
-  - check_ros_distro
-  - phoenix_bridge
+  - build
   - publish
   - cleanup
   - doc
 
 variables:
+  BUILDER_PREFIX: "ghcr.io/ipa-rwu/"
+  BUILDER_SUFFIX: ":latest"
+  FOLDER: ${CI_JOB_NAME}
+  NAME: ${CI_JOB_NAME}
+  PREFIX: "${CI_REGISTRY_IMAGE}/${CI_PIPELINE_ID}:"
+  SUFFIX: ""
   DOCKER_BUILDKIT: 1
   DOCKER_TLS_CERTDIR: ""
-  SUFFIX: ""
-  PREFIX: "${CI_REGISTRY_IMAGE}/${CI_PIPELINE_ID}:"
-  BUILDER_PREFIX: "registry.gitlab.cc-asp.fraunhofer.de/ipa326/docker_ros_builder/"
-  BUILDER_SUFFIX: ":latest"
   DEP_PREFIX: "registry.gitlab.cc-asp.fraunhofer.de/ipa326/phoenix_dependencies/"
   DEP_SUFFIX: ":latest"
-  ROSINSTALL_CI_JOB_TOKEN: "true"
-  FOLDER: ${CI_JOB_NAME}
-  ROS_DISTRO: ""
-  ROS_DISTROS: noetic foxy
-  NAME: ${CI_JOB_NAME}
-  TARGET_LATEST: ${CI_REGISTRY_IMAGE}/${NAME}:latest
   TARGET_BRANCH: ${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-}
+  TARGET_LATEST: ${CI_REGISTRY_IMAGE}/${NAME}:latest
   TARGET_RELEASE: ${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_TAG//\//-}
+  DEFAULT_ROS_DISTROS: noetic foxy galactic rolling humble
   CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=Release"
 
 .common:
@@ -32,41 +32,18 @@ variables:
   tags: &simple_runner
     - asprunner
   docker_login_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  rules:
-    - if: &commit_tag '$CI_COMMIT_TAG != null'
-    - if: &merge_into_devel '$CI_COMMIT_REF_NAME =~ /devel/'
-
-prepare:
-  stage: check_ros_distro
-  tags: *simple_runner
-  script:
-    - |
-      for distro in $ROS_DISTROS; do
-        raw=${CI_COMMIT_REF_NAME//\//-}
-        if [[ "$distro" = "${raw%%-*}" ]] || [[ "$distro" = "${CI_COMMIT_REF_NAME}" ]] || [[ "$distro" = "${raw%%_*}" ]]; then
-          echo "found"
-          echo "ROS_DISTRO=$distro" >> build.env
-          break
-        fi
-      done;
-      if [[ $ROS_DISTRO = "" ]]; then
-        exit 1
-        echo "Not found"
-      fi
-  artifacts:
-    reports:
-      dotenv: build.env
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
 
 .build:
-  stage: ${CI_JOB_NAME}
+  stage: build
   services: *docker_service
   tags: *docker_runner
   before_script:
     - !reference [.common, docker_login_script]
   script:
     - >
-      docker build
+      TARGET=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-};
+      docker build --cache-from $TARGET --cache-from $TARGET_LATEST --cache-from $TARGET_BRANCH
       --build-arg SUFFIX
       --build-arg PREFIX
       --build-arg DEP_PREFIX
@@ -74,24 +51,44 @@ prepare:
       --build-arg BUILDER_PREFIX
       --build-arg BUILDER_SUFFIX
       --build-arg ROS_DISTRO
-      --build-arg ROSINSTALL_CI_JOB_TOKEN
-      --build-arg CI_JOB_TOKEN
+      --build-arg ROSINSTALL_CI_JOB_TOKEN=$ROSINSTALL_CI_JOB_TOKEN
+      --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN
       --build-arg BUILDKIT_INLINE_CACHE=1
       --build-arg CMAKE_ARGS
       -t ${PREFIX}${NAME}${SUFFIX} ${FOLDER}
-    - docker push ${PREFIX}${NAME}${SUFFIX}
+    - >
+      if [[ "$CI_COMMIT_REF_NAME" =~ ".*devel" ]] || [[ $CI_COMMIT_TAG ]]; then
+        docker push ${PREFIX}${NAME}${SUFFIX}
+      fi
   variables:
     NAME: ${CI_JOB_NAME}_${ROS_DISTRO}
-  needs:
-    - prepare
 
-phoenix_bridge:
-  extends: .build
+phoenix_bridge_ros2:
+  extends:
+    - .build
+    - .on_ros2
   variables:
+    NAME: phoenix_bridge_${ROS_DISTRO}
     FOLDER: .
-  stage: phoenix_bridge
-  needs:
-    - prepare
+  parallel:
+    matrix:
+      - ROS_DISTRO:
+        - foxy
+        - galactic
+        - rolling
+        - humble
+
+phoenix_bridge_ros1:
+  extends:
+    - .build
+    - .on_ros1
+  variables:
+    NAME: phoenix_bridge_${ROS_DISTRO}
+    FOLDER: .
+  parallel:
+    matrix:
+      - ROS_DISTRO:
+        - noetic
 
 .publish:
   stage: publish
@@ -103,47 +100,76 @@ phoenix_bridge:
   script:
     - |
       TARGET=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-}
-      if [ "$CI_COMMIT_REF_NAME" = "${ROS_DISTRO}/devel" ]; then
+      if [[ $(expr match "$CI_COMMIT_REF_NAME" '.*devel') != 0 ]]; then
         TARGET=$TARGET_LATEST
       fi
       if [ $CI_COMMIT_TAG ]; then
         convert_tag=${CI_COMMIT_TAG//\//-}
         distro_prefix=${ROS_DISTRO}-
-        remove_distro_tag=${convert_tag#"$distro_prefix"}
-        TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
-        TARGET=$TARGET_RELEASE
+        if [[ $(expr match "$convert_tag" ".*$distro_prefix") != 0 ]]; then
+          remove_distro_tag=${convert_tag#"$distro_prefix"}
+          TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
+          TARGET=$TARGET_RELEASE
+        fi
+        if [[ $(expr match "$convert_tag" ".*ros1-") != 0 ]]; then
+          remove_distro_tag=${convert_tag#"ros1-"}
+          TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
+          TARGET=$TARGET_RELEASE
+        fi
+        if [[ $(expr match "$convert_tag" ".*ros2-") != 0 ]]; then
+          remove_distro_tag=${convert_tag#"ros2-"}
+          TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
+          TARGET=$TARGET_RELEASE
+        fi
       fi
       docker tag ${PREFIX}${NAME}${SUFFIX} ${TARGET} && docker push ${TARGET}
   needs:
-    - prepare
-    - phoenix_bridge
-  rules :
-    - if: *commit_tag
-      when: on_success
-    - if: *merge_into_devel
-      when: on_success
+    - build
 
-
-publish:phoenix_bridge:
-  extends: .publish
+publish:phoenix_bridge:ros2:
+  extends:
+    - .publish
+    - .on_ros2_merge_tag
   variables:
     NAME: phoenix_bridge_${ROS_DISTRO}
+  needs:
+    - phoenix_bridge_ros2
+  parallel:
+    matrix:
+      - ROS_DISTRO:
+        - foxy
+        - galactic
+        - rolling
+        - humble
+
+publish:phoenix_bridge:ros1:
+  extends:
+    - .publish
+    - .on_ros1_merge_tag
+  variables:
+    NAME: phoenix_bridge_${ROS_DISTRO}
+  needs:
+    - phoenix_bridge_ros1
+  parallel:
+    matrix:
+      - ROS_DISTRO:
+        - noetic
 
 cleanup_job:
   image: alpine:latest
-  tags: *simple_runner
   stage: cleanup
+  tags: *simple_runner
   before_script:
     - apk add --no-cache curl
     - apk add jq
   script:
     - >
-      curl -H "PRIVATE-TOKEN: $API_TOKEN" "https://gitlab.cc-asp.fraunhofer.de/api/v4/projects/${CI_PROJECT_ID}/registry/repositories" > output.json
+      curl -H "PRIVATE-TOKEN: $API_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories" > output.json
     - >
       image_id=$(jq --arg CI_PIPELINE_ID "$CI_PIPELINE_ID" '.[] | select(.name==$CI_PIPELINE_ID) | .id' output.json)
     - |
       if [[ ! -z "$image_id" ]]; then
-        curl --request DELETE -H "PRIVATE-TOKEN: $API_TOKEN" "https://gitlab.cc-asp.fraunhofer.de/api/v4/projects/${CI_PROJECT_ID}/registry/repositories/${image_id}"
+        curl --request DELETE -H "PRIVATE-TOKEN: $API_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories/${image_id}"
       fi
   when: always
 
