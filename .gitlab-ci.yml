@@ -57,7 +57,7 @@ variables:
       --build-arg CMAKE_ARGS
       -t ${PREFIX}${NAME}${SUFFIX} ${FOLDER}
     - >
-      if [[ "$CI_COMMIT_REF_NAME" =~ "devel" ]] || [[ $CI_COMMIT_TAG ]]; then
+      if [[ "$CI_COMMIT_REF_NAME" =~ ".*devel" ]] || [[ $CI_COMMIT_TAG ]]; then
         docker push ${PREFIX}${NAME}${SUFFIX}
       fi
   variables:
@@ -100,15 +100,27 @@ phoenix_bridge_ros1:
   script:
     - |
       TARGET=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-}
-      if [ "$CI_COMMIT_REF_NAME" =~ "devel" ]; then
+      if [[ $(expr match "$CI_COMMIT_REF_NAME" '.*devel') != 0 ]]; then
         TARGET=$TARGET_LATEST
       fi
       if [ $CI_COMMIT_TAG ]; then
         convert_tag=${CI_COMMIT_TAG//\//-}
         distro_prefix=${ROS_DISTRO}-
-        remove_distro_tag=${convert_tag#"$distro_prefix"}
-        TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
-        TARGET=$TARGET_RELEASE
+        if [[ $(expr match "$convert_tag" ".*$distro_prefix") != 0 ]]; then
+          remove_distro_tag=${convert_tag#"$distro_prefix"}
+          TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
+          TARGET=$TARGET_RELEASE
+        fi
+        if [[ $(expr match "$convert_tag" ".*ros1-") != 0 ]]; then
+          remove_distro_tag=${convert_tag#"ros1-"}
+          TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
+          TARGET=$TARGET_RELEASE
+        fi
+        if [[ $(expr match "$convert_tag" ".*ros2-") != 0 ]]; then
+          remove_distro_tag=${convert_tag#"ros2-"}
+          TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
+          TARGET=$TARGET_RELEASE
+        fi
       fi
       docker tag ${PREFIX}${NAME}${SUFFIX} ${TARGET} && docker push ${TARGET}
   needs:
