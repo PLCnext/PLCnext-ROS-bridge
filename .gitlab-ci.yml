@@ -30,7 +30,8 @@ stages:
 #     when: on_success
 #     expire_in: 10 minutes
 
-container:x86:
+#container:x86:
+container:
   stage: container
   image:
     name: gcr.io/kaniko-project/executor:debug
@@ -88,7 +89,8 @@ container:x86:
 #     expire_in: 30 minutes
 
 ## BUILD TestContainer and APP for x86 targets
-deploy:x86:
+#deploy:x86:
+deploy:
   stage: deploy
   image: 
     name: debian:bookworm
