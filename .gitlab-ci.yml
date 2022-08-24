@@ -111,7 +111,8 @@ deploy:
     - chmod +x app/initscript.sh
     - mksquashfs app plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.app -force-uid 1001 -force-gid 1002
   dependencies:
-    -  container:x86
+    #-  container:x86
+    -   container
   artifacts:
     name: "${CI_PROJECT_PATH_SLUG}-${CI_COMMIT_SHORT_SHA}"
     paths:
