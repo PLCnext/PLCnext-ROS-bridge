@@ -1,0 +1,24 @@
+{
+    "plcnextapp": {
+        "name": "ContainerTemplateApp",
+        "identifier": "00000000000123",
+        "version": "0.9 beta",
+        "target": "§§TARGETS§§",
+        "minfirmware_version": "22.6.0",
+        "manufacturer": "Phoenix Contact Electronics"
+    },
+    "datastorage": {
+        "persistentdata": true,
+        "temporarydata": true
+    },
+     "linuxdaemons" :
+     [
+           {
+               "path": "/bin/ContainerTemplateApp",
+               "cmdargs" : "",
+               "starttime": "99",
+               "initScriptTemplate": "initscript.sh"
+           }
+     ],
+     "plcnextservices" :[]
+}

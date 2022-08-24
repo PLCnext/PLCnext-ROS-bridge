@@ -1,0 +1,11 @@
+services:
+  plcnext-hello-world:
+# add _${APP_UNIQUE_NAME} to all of your container_name
+    container_name: plcnext-hello-world_${APP_UNIQUE_NAME}
+# Use the Image ID or fully qualified path incl. sha256 to avoid conflicts
+    image: ${image:-§§IMAGE_ID§§}
+    ports:
+      - "${port:-8080}:8000"
+    volumes:
+      - ${APP_DATA_PATH}/www:/www
+    user: "1002:1002"
