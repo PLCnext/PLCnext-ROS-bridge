@@ -72,11 +72,11 @@ deploy:arm:
     - cp ./plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.tar.gz app/images/plcnext-hello-world.tar.gz
     - >
       sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
-- >
+    - >
       sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
-- >
+    - >
       sed -i "s/§§TARGETS§§/AXC F 2152,AXC F 1152/g" ./app/app_info.json
-- chmod +x app/initscript.sh
+    - chmod +x app/initscript.sh
     - mksquashfs app plcnext-hello-world-${CI_COMMIT_SHORT_SHA}.app -force-uid 1001 -force-gid 1002
   dependencies:
     -  container:arm
@@ -102,11 +102,11 @@ deploy:x86:
     - cp ./plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.tar.gz app/images/plcnext-hello-world.tar.gz
     - >
       sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
-- >
+    - >
       sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
-- >
+    - >
       sed -i "s/§§TARGETS§§/AXC F 3152,EPC 1522,EPC 1502/g" ./app/app_info.json
-- chmod +x app/initscript.sh
+    - chmod +x app/initscript.sh
     - mksquashfs app plcnext-hello-world_x86-${CI_COMMIT_SHORT_SHA}.app -force-uid 1001 -force-gid 1002
   dependencies:
     -  container:x86
