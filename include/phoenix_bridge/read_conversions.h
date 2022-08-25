@@ -145,8 +145,8 @@ namespace conversions
                 cog.outl("  double sec_as_double, nsec_as_double;")
                 cog.outl("  nsec_as_double = modf(stamp_as_double, &sec_as_double);  // Split the integral and decimal parts")
                 cog.outl("  uint32_t nsec_as_int = static_cast<uint32_t>(nsec_as_double * pow(10, 9)); // ROS1 time.nsec typically has 9 digit precision")
-                cog.outl("  unpack_to_data.header.stamp.sec = static_cast<uint32_t>(sec_as_double);")
-                cog.outl("  unpack_to_data.header.stamp.nsec = nsec_as_int;")
+                cog.outl("  unpack_to_data.{}.sec = static_cast<uint32_t>(sec_as_double);".format(nam))
+                cog.outl("  unpack_to_data.{}.nsec = nsec_as_int;".format(nam))
                 cog.outl("")
                 continue
             # Special handling of array types
@@ -293,59 +293,42 @@ namespace conversions
 
   }
 
-  //----------sensor_msgs/LaserScan---------------
+  //----------std_msgs/Int64---------------
   template <>
-  inline void unpackReadObject<sensor_msgs::LaserScan>(const ObjectType &grpc_object, sensor_msgs::LaserScan& unpack_to_data)
+  inline void unpackReadObject<std_msgs::Int64>(const ObjectType &grpc_object, std_msgs::Int64& unpack_to_data)
   {
-    ObjectType header_1 = grpc_object.structvalue().structelements(0);
+    ObjectType data = grpc_object.structvalue().structelements(0);
+    unpack_to_data.data = data.int64value();
 
-    ObjectType header_seq = header_1.structvalue().structelements(0);
-    unpack_to_data.header.seq = header_seq.uint32value();
+  }
 
-    ObjectType header_stamp = header_1.structvalue().structelements(1);
+  //----------std_msgs/Float64---------------
+  template <>
+  inline void unpackReadObject<std_msgs::Float64>(const ObjectType &grpc_object, std_msgs::Float64& unpack_to_data)
+  {
+    ObjectType data = grpc_object.structvalue().structelements(0);
+    unpack_to_data.data = data.doublevalue();
+
+  }
+
+  //----------std_msgs/Header---------------
+  template <>
+  inline void unpackReadObject<std_msgs::Header>(const ObjectType &grpc_object, std_msgs::Header& unpack_to_data)
+  {
+    ObjectType seq = grpc_object.structvalue().structelements(0);
+    unpack_to_data.seq = seq.uint32value();
+
+    ObjectType stamp = grpc_object.structvalue().structelements(1);
     // time type is specially handled as a double type of 'sec.nsec'
-    double stamp_as_double = header_stamp.doublevalue();
+    double stamp_as_double = stamp.doublevalue();
     double sec_as_double, nsec_as_double;
     nsec_as_double = modf(stamp_as_double, &sec_as_double);  // Split the integral and decimal parts
     uint32_t nsec_as_int = static_cast<uint32_t>(nsec_as_double * pow(10, 9)); // ROS1 time.nsec typically has 9 digit precision
-    unpack_to_data.header.stamp.sec = static_cast<uint32_t>(sec_as_double);
-    unpack_to_data.header.stamp.nsec = nsec_as_int;
+    unpack_to_data.stamp.sec = static_cast<uint32_t>(sec_as_double);
+    unpack_to_data.stamp.nsec = nsec_as_int;
 
-    ObjectType header_frame_id = header_1.structvalue().structelements(2);
-    unpack_to_data.header.frame_id = header_frame_id.stringvalue();
-
-    ObjectType angle_min = grpc_object.structvalue().structelements(1);
-    unpack_to_data.angle_min = angle_min.floatvalue();
-
-    ObjectType angle_max = grpc_object.structvalue().structelements(2);
-    unpack_to_data.angle_max = angle_max.floatvalue();
-
-    ObjectType angle_increment = grpc_object.structvalue().structelements(3);
-    unpack_to_data.angle_increment = angle_increment.floatvalue();
-
-    ObjectType time_increment = grpc_object.structvalue().structelements(4);
-    unpack_to_data.time_increment = time_increment.floatvalue();
-
-    ObjectType scan_time = grpc_object.structvalue().structelements(5);
-    unpack_to_data.scan_time = scan_time.floatvalue();
-
-    ObjectType range_min = grpc_object.structvalue().structelements(6);
-    unpack_to_data.range_min = range_min.floatvalue();
-
-    ObjectType range_max = grpc_object.structvalue().structelements(7);
-    unpack_to_data.range_max = range_max.floatvalue();
-
-    ObjectType ranges = grpc_object.structvalue().structelements(8);
-    for (int i = 0; i < ranges.arrayvalue().arrayelements_size(); i++)
-    {
-      unpack_to_data.ranges[i] = ranges.arrayvalue().arrayelements(i).floatvalue();
-    }
-
-    ObjectType intensities = grpc_object.structvalue().structelements(9);
-    for (int i = 0; i < intensities.arrayvalue().arrayelements_size(); i++)
-    {
-      unpack_to_data.intensities[i] = intensities.arrayvalue().arrayelements(i).floatvalue();
-    }
+    ObjectType frame_id = grpc_object.structvalue().structelements(2);
+    unpack_to_data.frame_id = frame_id.stringvalue();
 
   }
 

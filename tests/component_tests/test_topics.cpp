@@ -32,7 +32,7 @@ TEST_F(TestTopics, check_topics)
     ASSERT_THAT(nodes, testing::Contains("/phoenix_bridge")) << "Node /phoenix_bridge not found in list";
 
     ros::master::V_TopicInfo topic_infos;
-    while(topic_infos.size() < 7)  // Wait until all 7 expected topics spawn
+    while(topic_infos.size() < 13)  // Wait until all 13 expected topics spawn, including /rosout
     {
         ros::master::getTopics(topic_infos);
     }
@@ -51,10 +51,19 @@ TEST_F(TestTopics, check_topics)
     ASSERT_THAT(topics, testing::Contains("/pub_twist_2"));
     ASSERT_THAT(topics, testing::Contains("/pub_string_1"));
     ASSERT_THAT(topics, testing::Contains("/pub_string_2"));
+    ASSERT_THAT(topics, testing::Contains("/pub_int_1"));
+    ASSERT_THAT(topics, testing::Contains("/pub_int_2"));
+    ASSERT_THAT(topics, testing::Contains("/pub_float_1"));
+    ASSERT_THAT(topics, testing::Contains("/pub_float_2"));
+    ASSERT_THAT(topics, testing::Contains("/pub_header_1"));
+    ASSERT_THAT(topics, testing::Contains("/pub_header_2"));
 
     ASSERT_THAT(datatypes, testing::Contains("nav_msgs/Odometry"));
     ASSERT_THAT(datatypes, testing::Contains("geometry_msgs/Twist"));
     ASSERT_THAT(datatypes, testing::Contains("std_msgs/String"));
+    ASSERT_THAT(datatypes, testing::Contains("std_msgs/Int64"));
+    ASSERT_THAT(datatypes, testing::Contains("std_msgs/Float64"));
+    ASSERT_THAT(datatypes, testing::Contains("std_msgs/Header"));
 }
 
 int main(int argc, char** argv)

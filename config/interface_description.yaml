@@ -5,37 +5,41 @@ communication:
 
 # Organise the description file per bridging type
 # Each type can have several pubs and subs
-# The list format per port (i.e. pub/sub) is [topic_name, grpc_instance_path, frequency]
-# See code comments in other headers for more info
+# The list format per port (i.e. pub/sub) is [topic_name: string, grpc_instance_path: string, frequency: int]
+# Params must adhere to this format, otherwise the bridge is either skipped or an error thrown
 
 nav_msgs/Odometry: # This is the identifying string used in init of type
   publishers: # Parsing this is hard coded
-    - [pub_odom_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.odom_data, 10] # Parsed to save as PortParams struct
-    - [pub_odom_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.odom_data, 20]
-  subscribers: # Parsing this is hard coded
-    - [sub_odom_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.odom_data, 10]
-    - [sub_odom_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.odom_data, 20]
+    - [pub_odom, Arp.Plc.Eclr/MainInstance.ROS1_Obj.odom_data, 10] # Parsed to save as PortParams struct
+  subscribers:
+    - []
 
 geometry_msgs/Twist:
   publishers:
-    - [pub_twist_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.twist_data, 30]
-    - [pub_twist_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.twist_data, 40]
+    - []
   subscribers:
-    - [sub_twist_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.twist_data, 30]
-    - [sub_twist_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.twist_data, 40]
+    - [sub_twist, Arp.Plc.Eclr/MainInstance.ROS1_Obj.twist_data, 30]
 
 std_msgs/String:
   publishers:
-    - [pub_string_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]
-    - [pub_string_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 60]
+    - []
   subscribers:
-    - [sub_string_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]
-    - [sub_string_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 60]
+    - []
 
-sensor_msgs/LaserScan:
+std_msgs/Int64:
   publishers:
-    - [pub_laser_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]
-    - [pub_laser_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]
+    - []
   subscribers:
-    - [sub_laser_1, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]
-    - [sub_laser_2, Arp.Plc.Eclr/MainInstance.ROS1_Obj.string_data, 50]
+    - []
+
+std_msgs/Float64:
+  publishers:
+    - []
+  subscribers:
+    - []
+
+std_msgs/Header:
+  publishers:
+    - []
+  subscribers:
+    - []

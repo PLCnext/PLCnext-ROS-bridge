@@ -39,6 +39,75 @@ TEST(ReadConversionTests, TestStringMsg)
     EXPECT_EQ(test_data, msg.data);
 }
 
+TEST(ReadConversionTests, TestDoubleMsg)
+{
+    double test_data = 12345.09876;
+    std_msgs::Float64 msg;
+
+    IDataAccessServiceReadResponse reply;
+    ::Arp::Plc::Gds::Services::Grpc::ReadItem* read_item = reply.add__returnvalue();
+
+    ::Arp::Type::Grpc::ObjectType* data = read_item->mutable_value()->mutable_structvalue()->add_structelements();
+    data->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+    data->set_doublevalue(test_data);
+
+    conversions::unpackReadObject(read_item->value(), msg);
+
+    EXPECT_EQ(test_data, msg.data);
+}
+
+TEST(ReadConversionTests, TestIntMsg)
+{
+    int64_t test_data = 1234509876;
+    std_msgs::Int64 msg;
+
+    IDataAccessServiceReadResponse reply;
+    ::Arp::Plc::Gds::Services::Grpc::ReadItem* read_item = reply.add__returnvalue();
+
+    ::Arp::Type::Grpc::ObjectType* data = read_item->mutable_value()->mutable_structvalue()->add_structelements();
+    data->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+    data->set_int64value(test_data);
+
+    conversions::unpackReadObject(read_item->value(), msg);
+
+    EXPECT_EQ(test_data, msg.data);
+}
+
+TEST(ReadConversionTests, TestHeaderMsg)
+{
+    std_msgs::Header header_msg;
+    IDataAccessServiceReadResponse reply;
+    ::Arp::Plc::Gds::Services::Grpc::ReadItem* read_item = reply.add__returnvalue();
+    read_item->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+    ::Arp::Type::Grpc::ObjectType* header_seq = read_item->mutable_value()->mutable_structvalue()->add_structelements();
+    header_seq->set_typecode(::Arp::Type::Grpc::CoreType::CT_Uint32);
+    header_seq->set_uint32value(10);
+
+    ::Arp::Type::Grpc::ObjectType* header_stamp = read_item->mutable_value()->mutable_structvalue()->add_structelements();
+    header_stamp->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+    header_stamp->set_doublevalue(1658485862.602742553);
+
+    ::Arp::Type::Grpc::ObjectType* header_frame_id = read_item->mutable_value()->mutable_structvalue()->add_structelements();
+    header_frame_id->set_typecode(::Arp::Type::Grpc::CoreType::CT_String);
+    header_frame_id->set_stringvalue("frame_id");
+
+    ObjectType test_grpc_object = reply._returnvalue(0).value();
+
+    std::string debugstr;
+    google::protobuf::TextFormat::PrintToString(test_grpc_object, &debugstr);
+    std::cout << debugstr << std::endl;
+
+    conversions::unpackReadObject(test_grpc_object, header_msg);
+
+    std::cout << header_msg << std::endl;
+
+    EXPECT_EQ(header_msg.seq, 10);
+    EXPECT_EQ(header_msg.stamp.sec, 1658485862);
+    EXPECT_EQ(header_msg.stamp.nsec, 602742671);
+    EXPECT_EQ(header_msg.frame_id, "frame_id");
+}
+
 TEST(ReadConversionTests, TestTwistMsg)
 {
     geometry_msgs::Twist twist_msg;

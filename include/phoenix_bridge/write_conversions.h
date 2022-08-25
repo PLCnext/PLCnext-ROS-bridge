@@ -163,8 +163,8 @@ namespace conversions
               # Special handling for time type
               elif typ == "time":
                   cog.outl("  // time type is specially handled as a double type of \'sec.nsec\'")
-                  cog.outl("  double nsec_to_double = data_to_pack.header.stamp.nsec/pow(10, 9);  // ROS1 time.nsec typically has 9 digit precision")
-                  cog.outl("  double stamp_to_double = data_to_pack.header.stamp.sec + nsec_to_double;")
+                  cog.outl("  double nsec_to_double = data_to_pack.{}.nsec/pow(10, 9);  // ROS1 time.nsec typically has 9 digit precision".format(nam))
+                  cog.outl("  double stamp_to_double = data_to_pack.{}.sec + nsec_to_double;".format(nam))
                   cog.outl("  {}->set_doublevalue(stamp_to_double);".format(var_name))
               else:
                   cog.outl("  {}->set_{}value(data_to_pack.{});".format(var_name, typ, nam))
@@ -349,77 +349,50 @@ namespace conversions
 
   }
 
-  //----------sensor_msgs/LaserScan---------------
+  //----------std_msgs/Int64---------------
   template <> inline
-  void packWriteItem<sensor_msgs::LaserScan>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, sensor_msgs::LaserScan data_to_pack)
+  void packWriteItem<std_msgs::Int64>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, std_msgs::Int64 data_to_pack)
   {
     grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
 
-    ::Arp::Type::Grpc::ObjectType* header_1 = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    header_1->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+    ::Arp::Type::Grpc::ObjectType* data = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
+    data->set_typecode(::Arp::Type::Grpc::CoreType::CT_Int64);
+    data->set_int64value(data_to_pack.data);
 
-    ::Arp::Type::Grpc::ObjectType* header_seq = header_1->mutable_structvalue()->add_structelements();
-    header_seq->set_typecode(::Arp::Type::Grpc::CoreType::CT_Uint32);
-    header_seq->set_uint32value(data_to_pack.header.seq);
+  }
 
-    ::Arp::Type::Grpc::ObjectType* header_stamp = header_1->mutable_structvalue()->add_structelements();
-    header_stamp->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+  //----------std_msgs/Float64---------------
+  template <> inline
+  void packWriteItem<std_msgs::Float64>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, std_msgs::Float64 data_to_pack)
+  {
+    grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+    ::Arp::Type::Grpc::ObjectType* data = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
+    data->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
+    data->set_doublevalue(data_to_pack.data);
+
+  }
+
+  //----------std_msgs/Header---------------
+  template <> inline
+  void packWriteItem<std_msgs::Header>(::Arp::Plc::Gds::Services::Grpc::WriteItem* grpc_object, std_msgs::Header data_to_pack)
+  {
+    grpc_object->mutable_value()->set_typecode(::Arp::Type::Grpc::CoreType::CT_Struct);
+
+    ::Arp::Type::Grpc::ObjectType* seq = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
+    seq->set_typecode(::Arp::Type::Grpc::CoreType::CT_Uint32);
+    seq->set_uint32value(data_to_pack.seq);
+
+    ::Arp::Type::Grpc::ObjectType* stamp = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
+    stamp->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real64);
     // time type is specially handled as a double type of 'sec.nsec'
-    double nsec_to_double = data_to_pack.header.stamp.nsec/pow(10, 9);  // ROS1 time.nsec typically has 9 digit precision
-    double stamp_to_double = data_to_pack.header.stamp.sec + nsec_to_double;
-    header_stamp->set_doublevalue(stamp_to_double);
+    double nsec_to_double = data_to_pack.stamp.nsec/pow(10, 9);  // ROS1 time.nsec typically has 9 digit precision
+    double stamp_to_double = data_to_pack.stamp.sec + nsec_to_double;
+    stamp->set_doublevalue(stamp_to_double);
 
-    ::Arp::Type::Grpc::ObjectType* header_frame_id = header_1->mutable_structvalue()->add_structelements();
-    header_frame_id->set_typecode(::Arp::Type::Grpc::CoreType::CT_String);
-    header_frame_id->set_stringvalue(data_to_pack.header.frame_id);
-
-    ::Arp::Type::Grpc::ObjectType* angle_min = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    angle_min->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real32);
-    angle_min->set_floatvalue(data_to_pack.angle_min);
-
-    ::Arp::Type::Grpc::ObjectType* angle_max = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    angle_max->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real32);
-    angle_max->set_floatvalue(data_to_pack.angle_max);
-
-    ::Arp::Type::Grpc::ObjectType* angle_increment = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    angle_increment->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real32);
-    angle_increment->set_floatvalue(data_to_pack.angle_increment);
-
-    ::Arp::Type::Grpc::ObjectType* time_increment = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    time_increment->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real32);
-    time_increment->set_floatvalue(data_to_pack.time_increment);
-
-    ::Arp::Type::Grpc::ObjectType* scan_time = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    scan_time->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real32);
-    scan_time->set_floatvalue(data_to_pack.scan_time);
-
-    ::Arp::Type::Grpc::ObjectType* range_min = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    range_min->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real32);
-    range_min->set_floatvalue(data_to_pack.range_min);
-
-    ::Arp::Type::Grpc::ObjectType* range_max = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    range_max->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real32);
-    range_max->set_floatvalue(data_to_pack.range_max);
-
-    ::Arp::Type::Grpc::ObjectType* ranges = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    ranges->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);
-    ::Arp::Type::Grpc::TypeArray* ranges_array = ranges->mutable_arrayvalue();
-    for (auto datum : data_to_pack.ranges)
-    {
-      ObjectType* elem = ranges_array->add_arrayelements();
-      elem->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real32);
-      elem->set_floatvalue(datum);
-    }
-
-    ::Arp::Type::Grpc::ObjectType* intensities = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
-    intensities->set_typecode(::Arp::Type::Grpc::CoreType::CT_Array);
-    ::Arp::Type::Grpc::TypeArray* intensities_array = intensities->mutable_arrayvalue();
-    for (auto datum : data_to_pack.intensities)
-    {
-      ObjectType* elem = intensities_array->add_arrayelements();
-      elem->set_typecode(::Arp::Type::Grpc::CoreType::CT_Real32);
-      elem->set_floatvalue(datum);
-    }
+    ::Arp::Type::Grpc::ObjectType* frame_id = grpc_object->mutable_value()->mutable_structvalue()->add_structelements();
+    frame_id->set_typecode(::Arp::Type::Grpc::CoreType::CT_String);
+    frame_id->set_stringvalue(data_to_pack.frame_id);
 
   }
 

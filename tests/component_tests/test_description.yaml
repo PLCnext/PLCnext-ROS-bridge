@@ -31,3 +31,27 @@ std_msgs/String:
   subscribers:
     - [sub_string_1, datapath_string_3, 50]
     - [sub_string_2, datapath_string_4, 60]
+
+std_msgs/Int64:
+  publishers:
+    - [pub_int_1, datapath__int_1, 50]
+    - [pub_int_2, datapath__int_2, 50]
+  subscribers:
+    - [sub_int_1, datapath__int_1, 50]
+    - [sub_int_2, datapath__int_2, 50]
+
+std_msgs/Float64:
+  publishers:
+    - [pub_float_1, datapath__float_1, 50]
+    - [pub_float_2, datapath__float_2, 50]
+  subscribers:
+    - [sub_float_1, datapath__float_1, 50]
+    - [sub_float_2, datapath__float_2, 50]
+
+std_msgs/Header:
+  publishers:
+    - [pub_header_1, datapath__header_1, 50]
+    - [pub_header_2, datapath__header_2, 50]
+  subscribers:
+    - [sub_header_1, datapath__header_1, 50]
+    - [sub_header_2, datapath__header_2, 50]
