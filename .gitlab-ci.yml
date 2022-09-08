@@ -2,26 +2,43 @@ include:
   - local: ci/gitlab_templates/RULES.yml
 
 variables:
+  ARTIFACT_PATH: ${CI_PROJECT_DIR}/generated
   BUILDER_PREFIX: "ghcr.io/ipa-rwu/"
   BUILDER_SUFFIX: ":latest"
   CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=RELEASE"
   DEFAULT_ROS_DISTROS: noetic foxy galactic rolling humble
-  DEP_PREFIX: "registry.gitlab.cc-asp.fraunhofer.de/ipa326/phoenix_dependencies/"
-  DEP_SUFFIX: ":latest"
+  DEP_REPO_NAME: grpc-client-deps
+  DEP_REPO_URL: gitlab.phoenixcontact.com/vmm-factory-automation/digital-factory/data-usage/flexible-production-with-agv/gda-control/$DEP_REPO_NAME.git
   DOCKER_BUILDKIT: 1
   DOCKER_TLS_CERTDIR: ""
   FOLDER: ${CI_JOB_NAME}/
   NAME: ${CI_JOB_NAME}
-  PREFIX: "${CI_REGISTRY_IMAGE}/${CI_PIPELINE_ID}:"
+  PREFIX: "${CI_PIPELINE_ID}:"
   ROS_VERSIONS: ros1 ros2
+  ROSINSTALL_CI_JOB_TOKEN: "true"
   STABLE_BRANCH: devel
   SUFFIX: ""
-  TARGET_LATEST: ${CI_REGISTRY_IMAGE}/${NAME}:latest
-  TARGET_RELEASE: ${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_TAG//\//-}
+  TARGET_LATEST: ${NAME}:latest
+  TARGET_RELEASE: ${NAME}:${CI_COMMIT_TAG//\//-}
 
 .common:
   tags: &kaniko_runner
     - shared-runner-kubernetes
+  create_release_tag_script:
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "main" ] || [ "$CI_COMMIT_REF_NAME" = "master" ]; then
+        TARGET=$TARGET_LATEST
+      fi
+      if [[ $(expr match "$CI_COMMIT_REF_NAME" ".*$STABLE_BRANCH") != 0 ]]; then
+        TARGET=$TARGET_LATEST
+      fi
+      if [ $CI_COMMIT_TAG ]; then
+        convert_tag=${CI_COMMIT_TAG//\//-}
+        distro_prefix=${ROS_DISTRO}-
+        remove_distro_tag=${convert_tag#"$distro_prefix"}
+        TARGET_RELEASE=${NAME}:${remove_distro_tag}
+        TARGET=$TARGET_RELEASE
+      fi
 
 .build:
   stage: build
@@ -34,38 +51,51 @@ variables:
       --context "${CI_PROJECT_DIR}/${FOLDER}"
       --build-arg SUFFIX
       --build-arg PREFIX
-      --build-arg DEP_PREFIX
-      --build-arg DEP_SUFFIX
+      --build-arg DEP_REPO_NAME
+      --build-arg DEP_REPO_URL
       --build-arg BUILDER_PREFIX
       --build-arg BUILDER_SUFFIX
       --build-arg ROS_DISTRO
-      --build-arg ROSINSTALL_CI_JOB_TOKEN=$ROSINSTALL_CI_JOB_TOKEN
-      --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN
+      --build-arg ROSINSTALL_CI_JOB_TOKEN
+      --build-arg CI_JOB_TOKEN
       --build-arg BUILDKIT_INLINE_CACHE=1
       --build-arg CMAKE_ARGS
       --dockerfile "${CI_PROJECT_DIR}/${FOLDER}Dockerfile"
-      --destination "${PREFIX}${NAME}${SUFFIX}"
+      --no-push
+      --destination "${TARGET}"
+      --tarPath ${PREFIX//:/-}${NAME}${SUFFIX}.tar
   variables:
     NAME: ${CI_JOB_NAME}_${ROS_DISTRO}
+  artifacts:
+    name: ${NAME}
+    paths:
+      - ${PREFIX//:/-}${NAME}${SUFFIX}.tar
+    expire_in: 10 minutes
 
-phoenix_bridge_ros1:
+plcnext-ros-bridge_ros1:
   extends:
     - .build
     - .on_ros1
+  before_script:
+    - TARGET=${PREFIX}${NAME}${SUFFIX}
+    - !reference [.common, create_release_tag_script]
   variables:
-    NAME: phoenix_bridge_${ROS_DISTRO}
+    NAME: plcnext-ros-bridge_${ROS_DISTRO}
     FOLDER: ""
   parallel:
     matrix:
       - ROS_DISTRO:
         - noetic
 
-phoenix_bridge_ros2:
+plcnext-ros-bridge_ros2:
   extends:
     - .build
     - .on_ros2
+  before_script:
+    - TARGET=${PREFIX}${NAME}${SUFFIX}
+    - !reference [.common, create_release_tag_script]
   variables:
-    NAME: phoenix_bridge_${ROS_DISTRO}
+    NAME: plcnext-ros-bridge_${ROS_DISTRO}
     FOLDER: ""
   parallel:
     matrix:
@@ -82,56 +112,39 @@ phoenix_bridge_ros2:
     name: gcr.io/kaniko-project/executor:v1.9.0-debug
     entrypoint: [""]
   script:
-    - |
-      TARGET=${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-}
-      if [ "$CI_COMMIT_REF_NAME" = "main" ] || [ "$CI_COMMIT_REF_NAME" = "master" ]; then
-        TARGET=$TARGET_LATEST
-      fi
-      if [[ $(expr match "$CI_COMMIT_REF_NAME" ".*$STABLE_BRANCH") != 0 ]]; then
-        TARGET=$TARGET_LATEST
-      fi
-      if [ $CI_COMMIT_TAG ]; then
-        convert_tag=${CI_COMMIT_TAG//\//-}
-        for ros_version in $ROS_VERSIONS; do
-          if [[ $(expr match "$convert_tag" ".*$ros_version-") != 0 ]]; then
-            distro_prefix=${ros_version}-
-            remove_distro_tag=${convert_tag#"$distro_prefix"}
-            TARGET_RELEASE=${CI_REGISTRY_IMAGE}/${NAME}:${remove_distro_tag}
-            TARGET=$TARGET_RELEASE
-            break
-          fi
-        done;
-      fi
-    - >
-      echo "FROM ${PREFIX}${NAME}${SUFFIX}" |
-      /kaniko/executor
-      --context $CI_PROJECT_DIR
-      --dockerfile /dev/stdin
-      --destination ${TARGET}
+    - TARGET=${NAME}:${CI_COMMIT_REF_NAME//\//-}
+    - !reference [.common, create_release_tag_script]
+    - mkdir ${ARTIFACT_PATH}
+    - mv ${PREFIX//:/-}${NAME}${SUFFIX}.tar ${ARTIFACT_PATH}/${TARGET//:/-}.tar
   needs:
     - build
+  artifacts:
+    name: ${NAME}
+    paths:
+      - ${ARTIFACT_PATH}/*.tar
+    expire_in: 10 minutes
 
-publish:phoenix_bridge:ros1:
+publish:plcnext-ros-bridge:ros1:
   extends:
     - .publish
     - .on_ros1_merge_tag
   variables:
-    NAME: phoenix_bridge_${ROS_DISTRO}
+    NAME: plcnext-ros-bridge_${ROS_DISTRO}
   needs:
-    - phoenix_bridge_ros1
+    - plcnext-ros-bridge_ros1
   parallel:
     matrix:
       - ROS_DISTRO:
         - noetic
 
-publish:phoenix_bridge:ros2:
+publish:plcnext-ros-bridge:ros2:
   extends:
     - .publish
     - .on_ros2_merge_tag
   variables:
-    NAME: phoenix_bridge_${ROS_DISTRO}
+    NAME: plcnext-ros-bridge_${ROS_DISTRO}
   needs:
-    - phoenix_bridge_ros2
+    - plcnext-ros-bridge_ros2
   parallel:
     matrix:
       - ROS_DISTRO:
@@ -139,24 +152,6 @@ publish:phoenix_bridge:ros2:
         - galactic
         - humble
         - rolling
-
-cleanup_job:
-  stage: cleanup
-  tags: *kaniko_runner
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache curl
-    - apk add jq
-  script:
-    - >
-      curl -H "PRIVATE-TOKEN: $PROJECT_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories" > output.json
-    - >
-      image_id=$(jq --arg CI_PIPELINE_ID "$CI_PIPELINE_ID" '.[] | select(.name==$CI_PIPELINE_ID) | .id' output.json)
-    - |
-      if [[ ! -z "$image_id" ]]; then
-        curl --request DELETE -H "PRIVATE-TOKEN: $PROJECT_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/registry/repositories/${image_id}"
-      fi
-  when: always
 
 doxygen-job:
   stage: doc
