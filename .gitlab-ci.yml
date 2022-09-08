@@ -2,7 +2,9 @@ include:
   - local: ci/gitlab_templates/RULES.yml
 
 variables:
-  ARTIFACT_PATH: ${CI_PROJECT_DIR}/generated
+  DOCKER_IMAGE_PATH: ${CI_PROJECT_DIR}/generated
+  APP_PATH: ${CI_PROJECT_DIR}/app/images
+  APP_NAME: plcnext-ros-bridge
   BUILDER_PREFIX: "ghcr.io/ipa-rwu/"
   BUILDER_SUFFIX: ":latest"
   CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=RELEASE"
@@ -72,7 +74,7 @@ variables:
       - ${PREFIX//:/-}${NAME}${SUFFIX}.tar
     expire_in: 10 minutes
 
-plcnext-ros-bridge_ros1:
+build_${APP_NAME}_ros1:
   extends:
     - .build
     - .on_ros1
@@ -80,14 +82,14 @@ plcnext-ros-bridge_ros1:
     - TARGET=${PREFIX}${NAME}${SUFFIX}
     - !reference [.common, create_release_tag_script]
   variables:
-    NAME: plcnext-ros-bridge_${ROS_DISTRO}
+    NAME: ${APP_NAME}_${ROS_DISTRO}
     FOLDER: ""
   parallel:
     matrix:
       - ROS_DISTRO:
         - noetic
 
-plcnext-ros-bridge_ros2:
+build_${APP_NAME}_ros2:
   extends:
     - .build
     - .on_ros2
@@ -95,7 +97,7 @@ plcnext-ros-bridge_ros2:
     - TARGET=${PREFIX}${NAME}${SUFFIX}
     - !reference [.common, create_release_tag_script]
   variables:
-    NAME: plcnext-ros-bridge_${ROS_DISTRO}
+    NAME: ${APP_NAME}_${ROS_DISTRO}
     FOLDER: ""
   parallel:
     matrix:
@@ -108,43 +110,99 @@ plcnext-ros-bridge_ros2:
 .publish:
   stage: publish
   tags: *kaniko_runner
-  image:
-    name: gcr.io/kaniko-project/executor:v1.9.0-debug
-    entrypoint: [""]
+  image: alpine:latest
   script:
     - TARGET=${NAME}:${CI_COMMIT_REF_NAME//\//-}
     - !reference [.common, create_release_tag_script]
-    - mkdir ${ARTIFACT_PATH}
-    - mv ${PREFIX//:/-}${NAME}${SUFFIX}.tar ${ARTIFACT_PATH}/${TARGET//:/-}.tar
+    - mkdir ${DOCKER_IMAGE_PATH}
+    - mv ${PREFIX//:/-}${NAME}${SUFFIX}.tar ${DOCKER_IMAGE_PATH}/${TARGET//:/-}.tar
   needs:
     - build
   artifacts:
     name: ${NAME}
     paths:
-      - ${ARTIFACT_PATH}/*.tar
+      - ${DOCKER_IMAGE_PATH}/*.tar
     expire_in: 10 minutes
 
-publish:plcnext-ros-bridge:ros1:
+publish_${APP_NAME}_ros1:
   extends:
     - .publish
     - .on_ros1_merge_tag
   variables:
-    NAME: plcnext-ros-bridge_${ROS_DISTRO}
+    NAME: ${APP_NAME}_${ROS_DISTRO}
   needs:
-    - plcnext-ros-bridge_ros1
+    - build_${APP_NAME}_ros1
   parallel:
     matrix:
       - ROS_DISTRO:
         - noetic
 
-publish:plcnext-ros-bridge:ros2:
+publish_${APP_NAME}_ros2:
   extends:
     - .publish
     - .on_ros2_merge_tag
   variables:
-    NAME: plcnext-ros-bridge_${ROS_DISTRO}
+    NAME: ${APP_NAME}_${ROS_DISTRO}
   needs:
-    - plcnext-ros-bridge_ros2
+    - build_${APP_NAME}_ros2
+  parallel:
+    matrix:
+      - ROS_DISTRO:
+        - foxy
+        - galactic
+        - humble
+        - rolling
+
+.deploy_app:
+  stage: deploy_app
+  tags: *kaniko_runner
+  image:
+    name: debian:bookworm
+  before_script:
+    - apt-get update
+    - apt-get install --yes squashfs-tools rpm
+    - TARGET=${NAME}:${CI_COMMIT_REF_NAME//\//-}
+    - !reference [.common, create_release_tag_script]
+  script:
+    - tar -tf ${DOCKER_IMAGE_PATH}/${TARGET//:/-}.tar --wildcards 'sha256*' >> ./image.id
+    - sed -i 's/[^:]*:\(.*\)/\1/' image.id
+    - mkdir $APP_PATH
+    - cp ${DOCKER_IMAGE_PATH}/${TARGET//:/-}.tar $APP_PATH/${TARGET//:/-}.tar
+    - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
+    - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
+    - sed -i "s/§§TARGETS§§/AXC F 3152,EPC 1522,EPC 1502/g" ./app/app_info.json
+    - chmod +x app/initscript.sh
+    - mksquashfs app ${TARGET//:/-}.app -force-uid 1001 -force-gid 1002
+  needs:
+    - build
+  artifacts:
+    name: "${CI_PROJECT_PATH_SLUG}-${APP_NAME}-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - ${CI_PROJECT_DIR}/*.app
+    when: on_success
+    expire_in: 30 minutes
+
+deploy_app:${APP_NAME}:ros1:
+  extends:
+    - .deploy_app
+    - .on_ros1_merge_tag
+  variables:
+    NAME: ${APP_NAME}_${ROS_DISTRO}
+  needs:
+    - publish_${APP_NAME}_ros1
+  parallel:
+    matrix:
+      - ROS_DISTRO:
+        - noetic
+
+deploy_app:${APP_NAME}:ros2:
+  extends:
+    - .deploy_app
+    - .on_ros2_merge_tag
+  variables:
+    NAME: ${APP_NAME}_${ROS_DISTRO}
+  needs:
+    - publish_${APP_NAME}_ros2
   parallel:
     matrix:
       - ROS_DISTRO:
@@ -171,4 +229,5 @@ doxygen-job:
 stages:
   - build
   - publish
+  - deploy_app
   - doc
