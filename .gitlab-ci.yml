@@ -171,5 +171,4 @@ doxygen-job:
 stages:
   - build
   - publish
-  - cleanup
   - doc
