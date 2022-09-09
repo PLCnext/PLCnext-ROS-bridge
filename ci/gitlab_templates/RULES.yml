@@ -6,15 +6,31 @@
 
   .on_ros2:
     rules:
+      - !reference [.rules-map, not_merge_event]
       - !reference [.rules-map, not_ros2_branch]
       - !reference [.rules-map, allow_failure_distros]
       - !reference [.rules-map, not_allow_failure_distros]
 
   .on_ros1:
     rules:
+      - !reference [.rules-map, not_merge_event]
       - !reference [.rules-map, not_ros1_branch]
       - !reference [.rules-map, allow_failure_distros]
       - !reference [.rules-map, not_allow_failure_distros]
+
+  .on_ros2_deps:
+    rules:
+      - !reference [.rules-map, not_merge_event]
+      - !reference [.rules-map, not_ros2_branch]
+      - !reference [.rules-map, deps_changes_allow_failure_distros]
+      - !reference [.rules-map, deps_changes_not_allow_failure_distros]
+
+  .on_ros1_deps:
+    rules:
+      - !reference [.rules-map, not_merge_event]
+      - !reference [.rules-map, not_ros1_branch]
+      - !reference [.rules-map, deps_changes_allow_failure_distros]
+      - !reference [.rules-map, deps_changes_not_allow_failure_distros]
 
   .on_ros2_tag:
     rules:
@@ -60,7 +76,7 @@
 
   .rules-map:
     ros2_branch:
-      - if: $CI_COMMIT_REF_NAME =~
+      - if: $CI_COMMIT_REF_NAME =~ /ros2/
         when: on_success
     not_ros2_branch:
       - if: $CI_COMMIT_REF_NAME !~ /^ros2.*/
@@ -75,6 +91,20 @@
     not_allow_failure_distros:
       - if: $ROS_DISTRO =~ $DEFAULT_ROS_DISTROS
         when: on_success
+        allow_failure: false
+    deps_changes_allow_failure_distros:
+      - if: $ROS_DISTRO !~ $DEFAULT_ROS_DISTROS
+        changes:
+          paths:
+            - $DEP_PATH/*
+        when: on_success
+        allow_failure: true
+    deps_changes_not_allow_failure_distros:
+      - if: $ROS_DISTRO =~ $DEFAULT_ROS_DISTROS
+        when: on_success
+        changes:
+          paths:
+            - $DEP_PATH/*
         allow_failure: false
     not_merge_into_ros1_devel:
       - if: $CI_COMMIT_BRANCH != $ROS1_DEV_BRANCH
@@ -93,4 +123,7 @@
         when: on_success
     not_commit_tag:
       - if: $CI_COMMIT_TAG == null
+        when: never
+    not_merge_event:
+      - if: $CI_PIPELINE_SOURCE == "merge_request_event"
         when: never
