@@ -34,10 +34,10 @@ export APP_LOG="${APP_DATA_PATH}/${APP_NAME}.log" # logfile
 # specify image archives and their accociated IDs in an array
 # IMAGES[<image_ID>]=<image_archive>
 declare -A IMAGES
-IMAGES[§§IMAGE_ID§§]=plcnext-hello-world.tar.gz
+IMAGES[§§IMAGE_ID§§]=$APP_NAME.tar
 # add all volumes to make them accessible to the container users and PLCnext admin (IDs 1002:1002)
 # Space separated list e.g. VOLUMES=("${APP_DATA_PATH}/test1" "${APP_DATA_PATH}/test2")
-declare -a VOLUMES=( "${APP_DATA_PATH}/www" )
+declare -a VOLUMES=( "${APP_DATA_PATH}/doc" )
 
 ##________Do not change the code below!________##
 
