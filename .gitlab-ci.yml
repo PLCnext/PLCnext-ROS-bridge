@@ -1,6 +1,12 @@
 include:
   - local: ci/gitlab_templates/RULES.yml
 
+stages:
+  - build
+  - publish
+  - deploy_app
+  - doc
+
 variables:
   DOCKER_IMAGE_PATH: ${CI_PROJECT_DIR}/generated
   APP_PATH: ${CI_PROJECT_DIR}/app/images
@@ -167,12 +173,12 @@ publish_${APP_NAME}_ros2:
     - tar -tf ${DOCKER_IMAGE_PATH}/${TARGET//:/-}.tar --wildcards 'sha256*' >> ./image.id
     - sed -i 's/[^:]*:\(.*\)/\1/' image.id
     - mkdir $APP_PATH
-    - cp ${DOCKER_IMAGE_PATH}/${TARGET//:/-}.tar $APP_PATH/${TARGET//:/-}.tar
+    - cp ${DOCKER_IMAGE_PATH}/${TARGET//:/-}.tar $APP_PATH/$APP_NAME.tar
     - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
     - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
     - sed -i "s/§§TARGETS§§/AXC F 3152,EPC 1522,EPC 1502/g" ./app/app_info.json
     - chmod +x app/initscript.sh
-    - mksquashfs app ${TARGET//:/-}.app -force-uid 1001 -force-gid 1002
+    - mksquashfs app $APP_NAME.app -force-uid 1001 -force-gid 1002
   needs:
     - build
   artifacts:
@@ -226,8 +232,4 @@ doxygen-job:
     - public
   when: always
 
-stages:
-  - build
-  - publish
-  - deploy_app
-  - doc
+
