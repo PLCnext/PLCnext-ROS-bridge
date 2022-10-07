@@ -1,6 +1,6 @@
 {
     "plcnextapp": {
-        "name": "PLCnext-ROS-bridge",
+        "name": "plcnext-ros-bridge",
         "identifier": "60002172000613",
         "version": "0.1 beta",
         "target": "§§TARGETS§§",
@@ -14,7 +14,7 @@
      "linuxdaemons" :
      [
            {
-               "path": "/bin/PLCnext-ROS-bridge",
+               "path": "/bin/plcnext-ros-bridge",
                "cmdargs" : "",
                "starttime": "99",
                "initScriptTemplate": "initscript.sh"
