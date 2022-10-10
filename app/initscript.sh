@@ -109,11 +109,13 @@ start ()
     then
       echo "$(date): Restarting $APP_NAME" >> $APP_LOG
       # Compose START
-      $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml --env-file ${APP_DATA_PATH}/user.env -p ${APP_UNIQUE_NAME} up -d --force-recreate >> $APP_LOG 2>&1
+      sleep 15
+      $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} up -d --force-recreate >> $APP_LOG 2>&1
     else 
       # Compose UP
+      sleep 15
       echo "$(date): Starting $APP_NAME" >> $APP_LOG
-      $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml --env-file ${APP_DATA_PATH}/user.env -p ${APP_UNIQUE_NAME} up -d >> $APP_LOG 2>&1
+      $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} up -d >> $APP_LOG 2>&1
   fi
   echo "$(date): start() finished" >> $APP_LOG
 
@@ -142,7 +144,7 @@ stop ()
   then
   # User pressed Stop
     echo "$(date): Stoping pod_${APP_UNIQUE_NAME} " >> $APP_LOG
-    $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml --env-file ${APP_DATA_PATH}/user.env -p ${APP_UNIQUE_NAME} down >> $APP_LOG 2>&1
+    $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} down >> $APP_LOG 2>&1
     echo "$(date): Remove network ${APP_UNIQUE_NAME}_default" >> $APP_LOG
     $CONTAINER_ENGINE network rm ${APP_UNIQUE_NAME}_default >> $APP_LOG 2>&1
     echo "$(date): Remove image(s)" >> $APP_LOG
@@ -163,7 +165,7 @@ stop ()
     done
   else
   # System shutdown
-    $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml --env-file ${APP_DATA_PATH}/user.env -p ${APP_UNIQUE_NAME} down >> $APP_LOG 2>&1
+    $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} down >> $APP_LOG 2>&1
   fi
   echo "$(date): stop() finished" >> $APP_LOG
   
