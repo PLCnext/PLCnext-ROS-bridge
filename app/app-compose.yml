@@ -4,6 +4,6 @@ services:
     container_name: rosbridge_${APP_UNIQUE_NAME}
 # Use the Image ID or fully qualified path incl. sha256 to avoid conflicts
     image: ${image:-§§IMAGE_ID§§}
-    volumes:
-      - /run/plcnext/grpc.sock:/run/plcnext/grpc.sock
+#    volumes:
+#      - /run/plcnext/grpc.sock:/run/plcnext/grpc.sock
     net: "host"
