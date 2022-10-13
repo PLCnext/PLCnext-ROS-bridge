@@ -6,4 +6,5 @@ services:
     image: ${image:-§§IMAGE_ID§§}
 #    volumes:
 #      - /run/plcnext/grpc.sock:/run/plcnext/grpc.sock
+    restart: unless-stopped
     net: "host"
