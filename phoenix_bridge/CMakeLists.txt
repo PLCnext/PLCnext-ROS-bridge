@@ -148,6 +148,10 @@ install(TARGETS phoenix_io_services
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+install(TARGETS liveliness_check
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 if(CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)
 
