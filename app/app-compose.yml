@@ -9,4 +9,7 @@ services:
     volumes:
       - /run/plcnext/grpc.sock:/run/plcnext/grpc.sock
     restart: unless-stopped
-    net: "host"
+    network_mode: host
+    environment:
+      - ROS_IP=${ROS_IP}
+    command: bash -c "roslaunch phoenix_bridge phoenix_bridge.launch"

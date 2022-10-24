@@ -41,7 +41,7 @@ LivelinessCheck::LivelinessCheck(ros::NodeHandle nh)
   nh_ = nh;
 
   nh_.param<std::string>("communication/grpc/address", grpc_address_, "unix:/run/plcnext/grpc.sock");
-  nh_.param<std::string>("liveliness_bool", liveliness_bool_, "Arp.Plc.Eclr/MainInstance.xLiveliness");
+  nh_.param<std::string>("liveliness_bool", liveliness_bool_, "Arp.Plc.Eclr/xLiveliness");
   nh_.param<float>("liveliness_timeout_s", liveliness_timeout_, 10);
   nh_.param<int>("poll_rate_hz", poll_rate_, 10);
 

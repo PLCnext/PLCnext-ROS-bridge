@@ -28,6 +28,7 @@ export APP_PATH="/opt/plcnext/apps/${APP_ID}" # mountpoint for ro app file
 export APP_TMP_PATH="/var/tmp/appsdata/${APP_ID}" # app temporary data storage
 export APP_DATA_PATH="${APP_HOME}/data/${APP_ID}" # app persistent data storage
 export APP_LOG="${APP_DATA_PATH}/${APP_NAME}.log" # logfile
+export ROS_IP=$(ip -o addr show | awk '{print $4}' | cut -d / -f 1 | head -5 | tail +5)
 
 ##________APP configuration________##
 

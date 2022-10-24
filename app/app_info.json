@@ -2,9 +2,9 @@
     "plcnextapp": {
         "name": "plcnext-ros-bridge",
         "identifier": "60002172000613",
-        "version": "0.1 beta",
+        "version": "0.2 beta",
         "target": "§§TARGETS§§",
-        "minfirmware_version": "22.0.0",
+        "minfirmware_version": "22.6.0",
         "manufacturer": "Phoenix Contact Electronics"
     },
     "datastorage": {

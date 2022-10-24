@@ -2,6 +2,6 @@ communication:
   grpc:
     address: "unix:/run/plcnext/grpc.sock"
     type: tcp
-liveliness_bool: "Arp.Plc.Eclr/MainInstance.xliveliness" # Check this pool on PLC to test liveliness
+liveliness_bool: "Arp.Plc.Eclr/xLiveliness" # Check this pool on PLC to test liveliness
 liveliness_timeout_s: 1 # Timeout in seconds. If no response recevied in this interval, shout a warning
 poll_rate_hz: 1 # Poll rate in Hz to check the bool.
