@@ -1,8 +1,8 @@
 {
     "plcnextapp": {
-        "name": "ContainerTemplateApp",
-        "identifier": "00000000000123",
-        "version": "0.9 beta",
+        "name": "plcnext-ros-bridge",
+        "identifier": "60002172000613",
+        "version": "0.1 beta",
         "target": "§§TARGETS§§",
         "minfirmware_version": "22.6.0",
         "manufacturer": "Phoenix Contact Electronics"
@@ -14,7 +14,7 @@
      "linuxdaemons" :
      [
            {
-               "path": "/bin/ContainerTemplateApp",
+               "path": "/bin/plcnext-ros-bridge",
                "cmdargs" : "",
                "starttime": "99",
                "initScriptTemplate": "initscript.sh"

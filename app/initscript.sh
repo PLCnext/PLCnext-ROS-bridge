@@ -28,16 +28,17 @@ export APP_PATH="/opt/plcnext/apps/${APP_ID}" # mountpoint for ro app file
 export APP_TMP_PATH="/var/tmp/appsdata/${APP_ID}" # app temporary data storage
 export APP_DATA_PATH="${APP_HOME}/data/${APP_ID}" # app persistent data storage
 export APP_LOG="${APP_DATA_PATH}/${APP_NAME}.log" # logfile
+export ROS_IP=$(ip -o addr show | awk '{print $4}' | cut -d / -f 1 | head -5 | tail +5)
 
 ##________APP configuration________##
 
 # specify image archives and their accociated IDs in an array
 # IMAGES[<image_ID>]=<image_archive>
 declare -A IMAGES
-IMAGES[§§IMAGE_ID§§]=plcnext-hello-world.tar.gz
+IMAGES[§§IMAGE_ID§§]=$APP_NAME.tar
 # add all volumes to make them accessible to the container users and PLCnext admin (IDs 1002:1002)
 # Space separated list e.g. VOLUMES=("${APP_DATA_PATH}/test1" "${APP_DATA_PATH}/test2")
-declare -a VOLUMES=( "${APP_DATA_PATH}/www" )
+declare -a VOLUMES=( "${APP_DATA_PATH}/doc" )
 
 ##________Do not change the code below!________##
 
@@ -109,11 +110,13 @@ start ()
     then
       echo "$(date): Restarting $APP_NAME" >> $APP_LOG
       # Compose START
-      $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml --env-file ${APP_DATA_PATH}/user.env -p ${APP_UNIQUE_NAME} up -d --force-recreate >> $APP_LOG 2>&1
+      sleep 15
+      $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} up -d --force-recreate >> $APP_LOG 2>&1
     else 
       # Compose UP
+      sleep 15
       echo "$(date): Starting $APP_NAME" >> $APP_LOG
-      $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml --env-file ${APP_DATA_PATH}/user.env -p ${APP_UNIQUE_NAME} up -d >> $APP_LOG 2>&1
+      $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} up -d >> $APP_LOG 2>&1
   fi
   echo "$(date): start() finished" >> $APP_LOG
 
@@ -142,7 +145,7 @@ stop ()
   then
   # User pressed Stop
     echo "$(date): Stoping pod_${APP_UNIQUE_NAME} " >> $APP_LOG
-    $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml --env-file ${APP_DATA_PATH}/user.env -p ${APP_UNIQUE_NAME} down >> $APP_LOG 2>&1
+    $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} down >> $APP_LOG 2>&1
     echo "$(date): Remove network ${APP_UNIQUE_NAME}_default" >> $APP_LOG
     $CONTAINER_ENGINE network rm ${APP_UNIQUE_NAME}_default >> $APP_LOG 2>&1
     echo "$(date): Remove image(s)" >> $APP_LOG
@@ -163,7 +166,7 @@ stop ()
     done
   else
   # System shutdown
-    $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml --env-file ${APP_DATA_PATH}/user.env -p ${APP_UNIQUE_NAME} down >> $APP_LOG 2>&1
+    $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} down >> $APP_LOG 2>&1
   fi
   echo "$(date): stop() finished" >> $APP_LOG
   

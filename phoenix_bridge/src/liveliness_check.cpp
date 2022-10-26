@@ -44,7 +44,7 @@ LivelinessCheck::LivelinessCheck(rclcpp::NodeOptions options)
 : rclcpp::Node("liveliness_check", options)
 {
   this->declare_parameter("grpc.address", "unix:/run/plcnext/grpc.sock");
-  this->declare_parameter("liveliness_bool", "Arp.Plc.Eclr/MainInstance.xLiveliness");
+  this->declare_parameter("liveliness_bool", "Arp.Plc.Eclr/xLiveliness");
   this->declare_parameter("liveliness_timeout_s", 10.0);
   this->declare_parameter("poll_rate_hz", 10);
 
