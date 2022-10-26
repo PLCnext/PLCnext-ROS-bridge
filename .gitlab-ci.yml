@@ -180,7 +180,7 @@ publish_${APP_NAME}_ros2:
     paths:
       - ${CI_PROJECT_DIR}/*.app
     when: on_success
-    expire_in: 30 minutes
+    expire_in: 1 day
 
 deploy_app:${APP_NAME}:ros1:
   extends:
