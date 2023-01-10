@@ -8,7 +8,7 @@ stages:
   - doc
 
 variables:
-  ROS_BRIDGE_VERSION: 2.0
+  ROS_BRIDGE_VERSION: "2.0"
 
   DOCKER_IMAGE_PATH: ${CI_PROJECT_DIR}/generated
   APP_PATH: ${CI_PROJECT_DIR}/app/images
@@ -111,7 +111,7 @@ build_${APP_NAME}_ros2:
     matrix:
       - ROS_DISTRO:
         - foxy
-        - galactic
+       # - galactic
         - humble
         - rolling
 
