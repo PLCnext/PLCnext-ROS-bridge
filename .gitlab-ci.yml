@@ -2,6 +2,8 @@ include:
   - local: ci/gitlab_templates/RULES.yml
 
 variables:
+  ROS_BRIDGE_VERSION: "2.0"
+
   DOCKER_IMAGE_PATH: ${CI_PROJECT_DIR}/generated
   APP_PATH: ${CI_PROJECT_DIR}/app/images
   APP_NAME: plcnext-ros-bridge
@@ -103,7 +105,7 @@ build_${APP_NAME}_ros2:
     matrix:
       - ROS_DISTRO:
         - foxy
-        - galactic
+        #- galactic
         - humble
         - rolling
 
@@ -149,7 +151,7 @@ publish_${APP_NAME}_ros2:
     matrix:
       - ROS_DISTRO:
         - foxy
-        - galactic
+      #  - galactic
         - humble
         - rolling
 
@@ -171,6 +173,7 @@ publish_${APP_NAME}_ros2:
     - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
     - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
     - sed -i "s/§§TARGETS§§/AXC F 3152,EPC 1522,EPC 1502/g" ./app/app_info.json
+    - sed -i "s/§§ROS_BRIDGE_VERSION§§/${ROS_BRIDGE_VERSION}/g" ./app/app_info.json
     - sed -i "s/§§ROS_DISTRO§§/${ROS_DISTRO}/g" ./app/app_info.json
     - chmod +x app/initscript.sh
     - mksquashfs app $APP_NAME.app -force-uid 1001 -force-gid 1002
@@ -208,7 +211,7 @@ deploy_app:${APP_NAME}:ros2:
     matrix:
       - ROS_DISTRO:
         - foxy
-        - galactic
+      #  - galactic
         - humble
         - rolling
 
