@@ -1,5 +1,5 @@
 repositories:
   ${DEP_REPO_NAME}:
     type: git
-    url: https://gitlab-ci-token:${CI_JOB_TOKEN}@${DEP_REPO_URL}
+    url: ${DEP_REPO_URL}
     version: heads/${ROS_DISTRO}/devel

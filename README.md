@@ -246,3 +246,34 @@ Consists of 3 phases:
 2. Doxygen documentation generation. The generated HTML documentation is available as downloadable artefacts and can also be served externally.
 
 3. Dockerization builds docker images ONLY FOR TAGGED COMMITS. The commit tag is chosen as the tag for the image as well (make sure to update package.xml as well). Therefore, in order to trigger CD and build the images, tag the commit with the version of the package and push with tags. The created images are available in the [gitlab container repository.](https://gitlab.cc-asp.fraunhofer.de/ipa326/phoenix_bridge/container_registry/)
+
+
+## How to build your specific PLCnext-ROS-Bridge as an APP
+### Wiht CI Runner e.g. in GitLab
+1. Fork this Repository
+    More Information how to fork a repository you find in the [GitHub-Documentations](https://docs.github.com/de/get-started/quickstart/fork-a-repo).   
+
+2. Modify depending on your demands.
+    - The IDF file (`phoenix_bridge/config/interface_description.yaml`) with topics you want to publish/subscribe and the variablepaths which should be connected.
+    - Add additonal ROS packages which should be availabe in the Image
+
+3. Run the CI and collect the APP file.
+
+4. Create a PLCnext Engineer Project
+    
+    Build a Application Projekt for the PLC with the Variables you want to connect to the ROS-Environment and run that on the Device.
+    
+    > NOTE: Don´t forget the global boolean Heartbeat Variable `Arp.Plc.Eclr/xLiveliness`! 
+
+   [Getting started with PLCnext Engineer](https://www.plcnext.help/te/PLCnext_Engineer/Getting_started_with_PLCnext_Engineer.htm)
+
+5. Install and start the APP via the WBM of the Controller
+    > NOTE: Be sure that the Application with the variables which ar is running on the Device 
+
+    More Information how to install a APP on the PLCnext Device you find in the [PLCnext Info Center](https://www.plcnext.help/te/WBM/WBM.htm).
+
+6. **Enjoy the flexibility of PLCnext!**
+
+### Manually without any CI Runner
+  1. 
+

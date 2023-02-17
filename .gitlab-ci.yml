@@ -3,6 +3,7 @@ include:
 
 variables:
   ROS_BRIDGE_VERSION: "2.0"
+  TARGE_DEVICES: AXC F 3152 #,EPC 1522,EPC 1502
 
   DOCKER_IMAGE_PATH: ${CI_PROJECT_DIR}/generated
   APP_PATH: ${CI_PROJECT_DIR}/app/images
@@ -11,8 +12,8 @@ variables:
   BUILDER_SUFFIX: ":latest"
   CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=RELEASE"
   DEFAULT_ROS_DISTROS: noetic foxy galactic rolling humble
-  DEP_REPO_NAME: grpc-client-deps
-  DEP_REPO_URL: gitlab.phoenixcontact.com/vmm-factory-automation/digital-factory/data-usage/flexible-production-with-agv/gda-control/$DEP_REPO_NAME.git
+  DEP_REPO_NAME: gRPC-client-deps
+  DEP_REPO_URL: https://github.com/PLCnext/${DEP_REPO_NAME}.git
   DOCKER_BUILDKIT: 1
   DOCKER_TLS_CERTDIR: ""
   FOLDER: ${CI_JOB_NAME}/
@@ -172,7 +173,7 @@ publish_${APP_NAME}_ros2:
     - cp ${DOCKER_IMAGE_PATH}/${TARGET//:/-}.tar $APP_PATH/$APP_NAME.tar
     - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
     - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
-    - sed -i "s/§§TARGETS§§/AXC F 3152,EPC 1522,EPC 1502/g" ./app/app_info.json
+    - sed -i "s/§§TARGETS§§/${TARGET_DEVICES}/g" ./app/app_info.json
     - sed -i "s/§§ROS_BRIDGE_VERSION§§/${ROS_BRIDGE_VERSION}/g" ./app/app_info.json
     - sed -i "s/§§ROS_DISTRO§§/${ROS_DISTRO}/g" ./app/app_info.json
     - chmod +x app/initscript.sh

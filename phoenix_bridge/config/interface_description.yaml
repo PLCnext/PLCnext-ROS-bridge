@@ -8,20 +8,20 @@ odom_bridge:
     grpc:
       address: "unix:/run/plcnext/grpc.sock"
     msg_type: "nav_msgs/msg/Odometry" # Include header filename and Scope resolution is derived from this as well.
-    publishers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
-      topics: [pub_odom]
-      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data]
-      frequencies: [40]
+    #publishers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
+    #  topics: [pub_odom]
+    #  datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.odom_data]
+    #  frequencies: [40]
 
 twist_bridge:
   ros__parameters:
     grpc:
       address: "unix:/run/plcnext/grpc.sock"
     msg_type: "geometry_msgs/msg/Twist"
-    subscribers:
-      topics: [sub_twist]
-      datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data]
-      frequencies: [100]
+    # subscribers:
+    #  topics: [sub_twist]
+    #  datapaths: [Arp.Plc.Eclr/MainInstance.gRPC_Obj.twist_data]
+    #  frequencies: [100]
 
 string_bridge:
   ros__parameters:
@@ -82,3 +82,31 @@ header_bridge:
     #   topics: []
     #   datapaths: []
     #   frequencies: []
+
+bool_bridge:
+  ros__parameters:
+    grpc:
+      address: "unix:/run/plcnext/grpc.sock"
+    msg_type: "std_msgs/msg/Bool"
+    publishers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
+      topics: [pub_stVar]
+      datapaths: [Arp.Plc.Eclr/stVar]
+      frequencies: [40]
+    subscribers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
+      topics: [sub_stVar]
+      datapaths: [Arp.Plc.Eclr/stVar]
+      frequencies: [40]
+
+num_bridge:
+  ros__parameters:
+    grpc:
+      address: "unix:/run/plcnext/grpc.sock"
+    msg_type: "std_msgs/msg/UInt8"
+    publishers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
+      topics: [pub_stNumOutput]
+      datapaths: [Arp.Plc.Eclr/stNumOutput]
+      frequencies: [40]
+    subscribers: # The next 3 lists must have the same size. Elements of the same index from each list characterise one port.
+      topics: [sub_stNumInput]
+      datapaths: [Arp.Plc.Eclr/main.stNumInput]
+      frequencies: [40]
