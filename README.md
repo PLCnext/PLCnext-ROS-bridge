@@ -274,6 +274,44 @@ Consists of 3 phases:
 
 6. **Enjoy the flexibility of PLCnext!**
 
-### Manually without any CI Runner
-  1. 
+### Manually without any CI Runner on Ubuntu OS
+  1. Download the branch or the ROS distro you are interested in from this repository.
+  2. Modify depending on your demands.
+    - The IDF file (`phoenix_bridge/config/interface_description.yaml`) with topics you want to publish/subscribe and the variablepaths which should be connected.
+    - Add additonal ROS packages which should be availabe in the Image
+
+  3. Navigate to the downloaded directory for example in the Download folder.
+      ```
+      $ cd cd ~/Downloads/PLCnext-ROS-bridge
+      ```
+  4. Build the docker image for your ROS Distrobution for example humble.
+      
+      ```
+      $ docker build --build-arg ROS_DISTRO=humble --tag mybridge:humble --file dockerfile_manually .
+      ```
+  5. Store the Image as .tar-file in the app directory
+      
+      ```
+      $ cd ~/Downloads/PLCnext-ROS-bridge/app
+      $ mkdir images
+      $ docker save -o images/mybridge.tar mybridge:humble
+      ```
+  6. Create a SquashFS container of the files for the APP.
+      
+      ```
+      $ cd ~/Downloads/PLCnext-ROS-bridge/app
+      $ sudo apt-get update
+      $ sudo apt-get install --yes squashfs-tools rpm images
+      $ docker save -o images/plcnext-ros-bridge.tar mybridge:humble
+      $ docker inspect --format="{{.Id}}" mybridge:humble | cut -d: -f2 >> ./image.id
+      $ sed -i 's/[^:]*:\(.*\)/\1/' image.id
+      $ sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" app-compose.yml
+      $ sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" initscript.sh
+      $ sed -i "s/§§TARGETS§§/AXC F 3152/g" app_info.json
+      $ sed -i "s/§§ROS_BRIDGE_VERSION§§/2.0/g" app_info.json
+      $ sed -i "s/§§ROS_DISTRO§§/humble/g" app_info.json
+      $ chmod +x initscript.sh
+      $ cd ..
+      $ mksquashfs app plcnext-ros-bridge.app -force-uid 1001 -force-gid 1002
+      ```
 
