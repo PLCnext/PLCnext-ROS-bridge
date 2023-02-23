@@ -228,23 +228,22 @@ Consists of 3 phases:
       ```
       $ cd ~/Downloads/PLCnext-ROS-bridge/app
       $ mkdir images
-      $ docker save -o images/mybridge.tar mybridge:noetic
+      $ docker save -o images/plcnext-ros-bridge.tar mybridge:noetic
       ```
   6. Create a SquashFS container of the files for the APP.
       
       ```
-      $ cd ~/Downloads/PLCnext-ROS-bridge/app
+      $ cd ~/Downloads/PLCnext-ROS-bridge
       $ sudo apt-get update
       $ sudo apt-get install --yes squashfs-tools rpm images
       $ docker inspect --format="{{.Id}}" mybridge:noetic | cut -d: -f2 >> ./image.id
       $ sed -i 's/[^:]*:\(.*\)/\1/' image.id
-      $ sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" app-compose.yml
-      $ sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" initscript.sh
-      $ sed -i "s/§§TARGETS§§/AXC F 3152/g" app_info.json
-      $ sed -i "s/§§ROS_BRIDGE_VERSION§§/2.0 specific/g" app_info.json
-      $ sed -i "s/§§ROS_DISTRO§§/noetic/g" app_info.json
-      $ chmod +x initscript.sh
-      $ cd ..
+      $ sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" app/app-compose.yml
+      $ sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" app/initscript.sh
+      $ sed -i "s/§§TARGETS§§/AXC F 3152/g" app/app_info.json
+      $ sed -i "s/§§ROS_BRIDGE_VERSION§§/2.0 specific/g" app/app_info.json
+      $ sed -i "s/§§ROS_DISTRO§§/noetic/g" app/app_info.json
+      $ chmod +x app/initscript.sh
       $ mksquashfs app plcnext-ros-bridge.app -force-uid 1001 -force-gid 1002
       ```
   7. Create a PLCnext Engineer Project
