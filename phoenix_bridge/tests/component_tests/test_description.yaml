@@ -55,3 +55,19 @@ std_msgs/Header:
   subscribers:
     - [sub_header_1, datapath__header_1, 50]
     - [sub_header_2, datapath__header_2, 50]
+
+std_msgs/Bool:
+  publishers:
+    - [pub_bool_1, datapath__bool_1, 50]
+    - [pub_bool_2, datapath__bool_2, 50]
+  subscribers:
+    - [sub_bool_1, datapath__bool_1, 50]
+    - [sub_bool_2, datapath__bool_2, 50]
+
+std_msgs/UInt8:
+  publishers:
+    - [pub_uint8_1, datapath__uint8_1, 50]
+    - [pub_uint8_2, datapath__uint8_2, 50]
+  subscribers:
+    - [sub_uint8_1, datapath__uint8_1, 50]
+    - [sub_uint8_2, datapath__uint8_2, 50]
