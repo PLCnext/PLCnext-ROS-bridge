@@ -44,13 +44,13 @@ std_msgs/Header:
   subscribers:
     - []
 
-std_msgs/msg/Bool:
+std_msgs/Bool:
   publishers:
     - [pub_stVar, Arp.Plc.Eclr/stVar, 40]
   subscribers:
     - [sub_stVar, Arp.Plc.Eclr/stVar, 40]
 
-std_msgs/msg/UInt8:
+std_msgs/UInt8:
   publishers:
     - [pub_stNumOutput, Arp.Plc.Eclr/stNumOutput, 40]
   subscribers:
