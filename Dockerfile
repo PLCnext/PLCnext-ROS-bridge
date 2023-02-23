@@ -5,6 +5,7 @@ ARG ROS_DISTRO=
 FROM public.ecr.aws/docker/library/ros:${ROS_DISTRO}-ros-core as base
 FROM ${BUILDER_PREFIX}builder${BUILDER_SUFFIX} as builder
 
+
 FROM base as deps
 COPY . /root/ws/src/
 COPY --from=builder workspace.bash /builder/workspace.bash
@@ -52,4 +53,3 @@ RUN apt-get update -qq && \
     /builder/workspace.bash install_depends /root/ws && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=install /opt/ros/$ROS_DISTRO /opt/ros/$ROS_DISTRO
-

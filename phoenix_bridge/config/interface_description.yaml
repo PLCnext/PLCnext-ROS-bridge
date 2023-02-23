@@ -10,7 +10,7 @@ communication:
 
 nav_msgs/Odometry: # This is the identifying string used in init of type
   publishers: # Parsing this is hard coded
-    - [pub_odom, Arp.Plc.Eclr/MainInstance.ROS1_Obj.odom_data, 10] # Parsed to save as PortParams struct
+    - []
   subscribers:
     - []
 
@@ -18,7 +18,7 @@ geometry_msgs/Twist:
   publishers:
     - []
   subscribers:
-    - [sub_twist, Arp.Plc.Eclr/MainInstance.ROS1_Obj.twist_data, 30]
+    - []
 
 std_msgs/String:
   publishers:
@@ -43,3 +43,15 @@ std_msgs/Header:
     - []
   subscribers:
     - []
+
+std_msgs/msg/Bool:
+  publishers:
+    - [pub_stVar, Arp.Plc.Eclr/stVar, 40]
+  subscribers:
+    - [sub_stVar, Arp.Plc.Eclr/stVar, 40]
+
+std_msgs/msg/UInt8:
+  publishers:
+    - [pub_stNumOutput, Arp.Plc.Eclr/stNumOutput, 40]
+  subscribers:
+    - [sub_stNumInput, Arp.Plc.Eclr/main.stNumInput, 40]
