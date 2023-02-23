@@ -277,8 +277,9 @@ Consists of 3 phases:
 ### Manually without any CI Runner on Ubuntu OS
   1. Download the branch or the ROS distro you are interested in from this repository.
   2. Modify depending on your demands.
-    - The IDF file (`phoenix_bridge/config/interface_description.yaml`) with topics you want to publish/subscribe and the variablepaths which should be connected.
-    - Add additonal ROS packages which should be availabe in the Image
+
+      - The IDF file (`phoenix_bridge/config/interface_description.yaml`) with topics you want to publish/subscribe and the variablepaths which should be connected.
+      - Add additonal ROS packages which should be availabe in the Image
 
   3. Navigate to the downloaded directory for example in the Download folder.
       ```
@@ -307,9 +308,23 @@ Consists of 3 phases:
       $ sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" app/app-compose.yml
       $ sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" app/initscript.sh
       $ sed -i "s/§§TARGETS§§/AXC F 3152/g" app/app_info.json
-      $ sed -i "s/§§ROS_BRIDGE_VERSION§§/2.0/g" app/app_info.json
+      $ sed -i "s/§§ROS_BRIDGE_VERSION§§/2.0 specific/g" app/app_info.json
       $ sed -i "s/§§ROS_DISTRO§§/humble/g" app/app_info.json
       $ chmod +x app/initscript.sh
       $ mksquashfs app plcnext-ros-bridge.app -force-uid 1001 -force-gid 1002
       ```
+  7. Create a PLCnext Engineer Project
+    
+      Build a Application Projekt for the PLC with the Variables you want to connect to the ROS-Environment and run that on the Device.
+    
+      > NOTE: Don´t forget the global boolean Heartbeat Variable `Arp.Plc.Eclr/xLiveliness`! 
 
+      [Getting started with PLCnext Engineer](https://www.plcnext.help/te/PLCnext_Engineer/Getting_started_with_PLCnext_Engineer.htm)
+
+  8. Install and start the APP via the WBM of the Controller
+    
+      > NOTE: Be sure that the Application with the variables which ar is running on the Device 
+
+      More Information how to install a APP on the PLCnext Device you find in the [PLCnext Info Center](https://www.plcnext.help/te/WBM/WBM.htm).
+
+  9. **Enjoy the flexibility of PLCnext!**
