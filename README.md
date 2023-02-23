@@ -173,4 +173,91 @@ Component testing is added under `tests/component_tests` folder.
 
 ## CI/CD
 
-TODO
+Consists of 3 phases:
+
+1. Build and test the package using [industrial_ci](https://github.com/ros-industrial/industrial_ci). This runs all tests as configured in CMakeLists.txt
+
+2. Doxygen documentation generation. The generated HTML documentation is available as downloadable artefacts and can also be served externally.
+
+3. Dockerization builds docker images ONLY FOR TAGGED COMMITS. The commit tag is chosen as the tag for the image as well (make sure to update package.xml as well). Therefore, in order to trigger CD and build the images, tag the commit with the version of the package and push with tags. The created images are available in the [gitlab container repository.](https://gitlab.cc-asp.fraunhofer.de/ipa326/phoenix_bridge/container_registry/)
+
+
+## How to build your specific PLCnext-ROS-Bridge as an APP
+### Wiht CI Runner e.g. in GitLab
+1. Fork this Repository
+    More Information how to fork a repository you find in the [GitHub-Documentations](https://docs.github.com/de/get-started/quickstart/fork-a-repo).   
+
+2. Modify depending on your demands.
+    - The IDF file (`phoenix_bridge/config/interface_description.yaml`) with topics you want to publish/subscribe and the variablepaths which should be connected.
+    - Add additonal ROS packages which should be availabe in the Image
+
+3. Run the CI and collect the APP file.
+
+4. Create a PLCnext Engineer Project
+    
+    Build a Application Projekt for the PLC with the Variables you want to connect to the ROS-Environment and run that on the Device.
+    
+    > NOTE: Don´t forget the global boolean Heartbeat Variable `Arp.Plc.Eclr/xLiveliness`! 
+
+   [Getting started with PLCnext Engineer](https://www.plcnext.help/te/PLCnext_Engineer/Getting_started_with_PLCnext_Engineer.htm)
+
+5. Install and start the APP via the WBM of the Controller
+    > NOTE: Be sure that the Application with the variables which ar is running on the Device 
+
+    More Information how to install a APP on the PLCnext Device you find in the [PLCnext Info Center](https://www.plcnext.help/te/WBM/WBM.htm).
+
+6. **Enjoy the flexibility of PLCnext!**
+
+### Manually without any CI Runner on Ubuntu OS
+  1. Download the branch or the ROS distro you are interested in from this repository.
+  2. Modify depending on your demands.
+    - The IDF file (`phoenix_bridge/config/interface_description.yaml`) with topics you want to publish/subscribe and the variablepaths which should be connected.
+    - Add additonal ROS packages which should be availabe in the Image
+
+  3. Navigate to the downloaded directory for example in the Download folder.
+      ```
+      $ cd cd ~/Downloads/PLCnext-ROS-bridge
+      ```
+  4. Build the docker image for your ROS noetic.
+      
+      ```
+      $ docker build --build-arg ROS_DISTRO=noetic --tag mybridge:noetic --file dockerfile_manually .
+      ```
+  5. Store the Image as .tar-file in the app directory
+      
+      ```
+      $ cd ~/Downloads/PLCnext-ROS-bridge/app
+      $ mkdir images
+      $ docker save -o images/mybridge.tar mybridge:noetic
+      ```
+  6. Create a SquashFS container of the files for the APP.
+      
+      ```
+      $ cd ~/Downloads/PLCnext-ROS-bridge/app
+      $ sudo apt-get update
+      $ sudo apt-get install --yes squashfs-tools rpm images
+      $ docker inspect --format="{{.Id}}" mybridge:noetic | cut -d: -f2 >> ./image.id
+      $ sed -i 's/[^:]*:\(.*\)/\1/' image.id
+      $ sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" app-compose.yml
+      $ sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" initscript.sh
+      $ sed -i "s/§§TARGETS§§/AXC F 3152/g" app_info.json
+      $ sed -i "s/§§ROS_BRIDGE_VERSION§§/2.0 specific/g" app_info.json
+      $ sed -i "s/§§ROS_DISTRO§§/noetic/g" app_info.json
+      $ chmod +x initscript.sh
+      $ cd ..
+      $ mksquashfs app plcnext-ros-bridge.app -force-uid 1001 -force-gid 1002
+      ```
+  7. Create a PLCnext Engineer Project
+    
+      Build a Application Projekt for the PLC with the Variables you want to connect to the ROS-Environment and run that on the Device.
+    
+      > NOTE: Don´t forget the global boolean Heartbeat Variable `Arp.Plc.Eclr/xLiveliness`! 
+
+      [Getting started with PLCnext Engineer](https://www.plcnext.help/te/PLCnext_Engineer/Getting_started_with_PLCnext_Engineer.htm)
+
+  8. Install and start the APP via the WBM of the Controller
+      > NOTE: Be sure that the Application with the variables which ar is running on the Device 
+
+      More Information how to install an APP on the PLCnext Device you find in the [PLCnext Info Center](https://www.plcnext.help/te/WBM/WBM.htm).
+  9. **Enjoy the flexibility of PLCnext!**
+
