@@ -1,6 +1,6 @@
 # PHOENIX BRIDGE
 
-ROS package to bridge ROS Noetic to PLCnext devices. Requires the dependencies from the PLC SDK to be properly installed in order to compile and function. Refer [Phoenix Dependencies](https://gitlab.cc-asp.fraunhofer.de/ipa326/phoenix_dependencies/-/tree/noetic) repo for info on this.
+ROS package to bridge ROS 2 to PLCnext devices. Requires the dependencies from the PLC SDK to be properly installed in order to compile and function. Refer [Phoenix Dependencies](https://github.com/PLCnext/gRPC-client-deps/tree/humble/devel) repo for info on this.
 
 The main principle is that this package can parse an interface description file and generate the code required for setting up bridging topics for the ROS msg types as specified.
 
@@ -32,11 +32,11 @@ The bridge is composed of two main packages:
 
 ### The Interface Description File (IDF)
 
-The [Interface description file](phoenix_bridge/config/interface_description.yaml), `phoenix_bridge/config/interface_description.yaml`, is a yaml format file structured as a ROS parameter file. This is where the user defines which bridging topics are to be created. Prameters in ROS2 are clustered together per node, and each node in from this package is dedicated to bridging one ROS2 msg type.
+The [Interface description file](phoenix_bridge/config/interface_description.yaml), `phoenix_bridge/config/interface_description.yaml`, is a yaml format file structured as a ROS parameter file. This is where the user defines which bridging topics are to be created. Prameters in ROS 2 are clustered together per node, and each node in from this package is dedicated to bridging one ROS 2 msg type.
 
-* The primary entries are always node names. For each node, the ROS2 parameters are declared under the fixed namespace `ros__parameters`.
+* The primary entries are always node names. For each node, the ROS 2 parameters are declared under the fixed namespace `ros__parameters`.
 * The first parameter is alwas `grpc` and requires the `grpc.address` param to be set to the correct value to communicate with the grpc server on the PLC. A typical value is `unix:/run/plcnext/grpc.sock`.
-* The second parameter is always `msg_type`. This dictates which ROS2 msg type name the node should bridge.
+* The second parameter is always `msg_type`. This dictates which ROS 2 msg type name the node should bridge.
 * The next two parameters `publishers` and `subscribers` are optional. These are required if publishing and subscribing topics respectively are to be created for the type of this node. If one or both are omitted, then those type of topics are simply not generated at launch time. Both of them have 3 list type sub-parameters, :
     * `topics` [list of strings]- the names of the topics that should be created
     * `datapaths` [list of strings]- the instance paths to the variable in the global dataspace of the PLC corresponding per index position to the above topics.
@@ -71,7 +71,7 @@ Explanation:
 
 `grpc.address: "unix:/run/plcnext/grpc.sock"` - The node shall use this value as the grpc address for communication with the PLC.
 
-`msg_type: "nav_msgs/msg/Odom" ` - It shall handle bridging `nav_msgs/msg/Odom` type ROS2 messages.
+`msg_type: "nav_msgs/msg/Odom" ` - It shall handle bridging `nav_msgs/msg/Odom` type ROS 2 messages.
 `header_name: "nav_msgs/msg/odometry"` - However, the C++ incldue header name is different and is actually `nav_msgs/msg/odometry.hpp`.
 
 `publishers:` -  It shall spawn some publishers.
@@ -182,13 +182,13 @@ Tests shall also be run by CI automatically when code is pushed to gitlab.
 
 ### Scaling codegen for more message types
 
-The main infrastructure to parse ROS2 message types and generate code is in place. However, when scaling up this bridge to parse more message types, there are some parts of the code that might need to be expanded.
+The main infrastructure to parse ROS 2 message types and generate code is in place. However, when scaling up this bridge to parse more message types, there are some parts of the code that might need to be expanded.
 
-1. Type name differences - Some type names are inconsistent between the [ROS2 IDL](https://design.ros2.org/articles/idl_interface_definition.html) and protobuf/grpc. For example, IDL denotes `boolean` whereas protobuf denotes `bool`. Since codegen is templated by strings, this could break the code. Each such exceptional case has to be handled individually, and is currently done in the function `msg_parser.decompose_ros_msg_type()` - [relative_link](phoenix_bridge/phoenix_bridge/msg_parser.py#L65). The target is to change IDL to match protobuf.
+1. Type name differences - Some type names are inconsistent between the [ROS 2 IDL](https://design.ros2.org/articles/idl_interface_definition.html) and protobuf/grpc. For example, IDL denotes `boolean` whereas protobuf denotes `bool`. Since codegen is templated by strings, this could break the code. Each such exceptional case has to be handled individually, and is currently done in the function `msg_parser.decompose_ros_msg_type()` - [relative_link](phoenix_bridge/phoenix_bridge/msg_parser.py#L65). The target is to change IDL to match protobuf.
 
 2. Type casting - The protobuf types need to be cast into [IEC types](https://en.wikipedia.org/wiki/IEC_61131-3#Data_types), but more specifically, the types supported by PLCnext as seen in `ArpTypes.pb.h/CoreType` - [relative_link](phoenix_bridge/include/phoenix_bridge/ServiceStubs/ArpTypes.pb.h#L81). This casting is handled in the [msg_parser](phoenix_bridge/phoenix_bridge/msg_parser.py#L89) through the `TypesDict` dictionary. This dictionary has a few type castings already defined, but is not an exhaustive list. When new types are encountered which are undefined, the message `<type>_CASTING_UNDEFINED` can be seen in the generated code. To avoid/resolve this, `TypesDict` has to be extended by defining more casting pairs. The target is to cast from IDL type to PLCnext type.
 
-3. Type linking - In order to compile the package properly, when new ROS2 msg libraries are included, CMakeLists.txt & package.xml should also be extended to include these so they can be linked. This is done by adding the type library to the variable [MSG_TYPES_TO_LINK](phoenix_bridge/CMakeLists.txt#L39), and `package.xml` should  be extended [here](phoenix_bridge/package.xml#L16). This linking list is currently kept to the minimum used, in order to avoid linking every ROS type and bloating the package too much.
+3. Type linking - In order to compile the package properly, when new ROS 2 msg libraries are included, CMakeLists.txt & package.xml should also be extended to include these so they can be linked. This is done by adding the type library to the variable [MSG_TYPES_TO_LINK](phoenix_bridge/CMakeLists.txt#L39), and `package.xml` should  be extended [here](phoenix_bridge/package.xml#L16). This linking list is currently kept to the minimum used, in order to avoid linking every ROS type and bloating the package too much.
 
 ### Linting
 
