@@ -1,6 +1,6 @@
 # PHOENIX BRIDGE
 
-ROS package to bridge ROS Noetic to PLCnext devices. Requires the dependencies from the PLC SDK to be properly installed in order to compile and function. Refer [Phoenix Dependencies](https://gitlab.cc-asp.fraunhofer.de/ipa326/phoenix_dependencies/-/tree/noetic) repo for info on this.
+ROS package to bridge ROS Noetic to PLCnext devices. Requires the dependencies from the PLC SDK to be properly installed in order to compile and function. Refer [Phoenix Dependencies](https://github.com/PLCnext/gRPC-client-deps/tree/noetic/devel) repo for info on this.
 
 The main principle is that this package can parse an interface description file and generate the code required for setting up bridging topics for the ROS msg types as specified.
 
@@ -131,13 +131,13 @@ $ cog -r include/phoenix_bridge/write_conversions.hpp
 
 ### Scaling codegen for more message types
 
-The main infrastructure to parse ROS2 message types and generate code is in place. However, when scaling up this bridge to parse more message types, there are some parts of the code that might need to be expanded.
+The main infrastructure to parse ROS message types and generate code is in place. However, when scaling up this bridge to parse more message types, there are some parts of the code that might need to be expanded.
 
 1. Type casting - The protobuf types need to be cast into [IEC types](https://en.wikipedia.org/wiki/IEC_61131-3#Data_types), but more specifically, the types supported by PLCnext as seen in `ArpTypes.pb.h/CoreType` - [relative_link](include/phoenix_bridge/ServiceStubs/ArpTypes.pb.h#L81). This casting is handled in the [msg_parser](phoenix_bridge/src/parsers/msg_parser.py#L159) through the `TypesDict` dictionary. This dictionary has a few type castings already defined, but is not an exhaustive list. When new types are encountered which are undefined, the message `<type>_CASTING_UNDEFINED` can be seen in the generated code. To avoid/resolve this, `TypesDict` has to be extended by defining more casting pairs. The target is to cast from IDL type to PLCnext type.
 
 2. Type name fixing - Some type names are different between the ROS msg types and protobuf type. Ex: ROS - `float64` = protobuf - `double`. These naming inconsistencies have to be fixed on an individual basis, and is done with the `adjust_type()` function in [msg_parser](phoenix_bridge/src/parsers/msg_parser.py#L30). Not only should this function be used in all cog scripts, the casting conditions also need to be updated as needed.
 
-3. Type linking - In order to compile the package properly, when new ROS2 msg libraries are included, CMakeLists.txt should also be extended to include these so they can be linked. This is done by adding the type library to the variable [MSG_TYPES_TO_LINK](CMakeLists.txt#L26). Furthermore, `package.xml` should also be extended to add dependencies to the new libraries [here](package.xml#L20). This linking list is currently kept to the minimum used, in order to avoid linking every ROS type and bloating the package too much.
+3. Type linking - In order to compile the package properly, when new ROS msg libraries are included, CMakeLists.txt should also be extended to include these so they can be linked. This is done by adding the type library to the variable [MSG_TYPES_TO_LINK](CMakeLists.txt#L26). Furthermore, `package.xml` should also be extended to add dependencies to the new libraries [here](package.xml#L20). This linking list is currently kept to the minimum used, in order to avoid linking every ROS type and bloating the package too much.
 
 4. Special type handling - Some types need to be handled completely uniquely, and not covered by the standard templytes. Ex: The `time` type in ROS1 msgs is [specially converted to a double](include/phoenix_bridge/write_conversions.h#L164); arrays also need [special handling](include/phoenix_bridge/write_conversions.h#L153). These exceptional handling mechanisms are to be done directly in the cog scripts.
 
