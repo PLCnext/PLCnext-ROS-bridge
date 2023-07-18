@@ -28,7 +28,7 @@ The main principle is that this package can parse an interface description file 
 
 The bridge is composed of two main packages:
 1. `phoenix_bridge`: The main bridge logic and functional part.
-2. `phoenix_interfaces`: Package to hold message and service files only.
+2. `phoenix_interfaces`: Package to hold message and service files only. (Needed to include services or msg types in other workspaces!)
 
 ### The Interface Description File (IDF)
 
