@@ -3,7 +3,7 @@ services:
 # add _${APP_UNIQUE_NAME} to all of your container_name
     container_name: rosbridge_${APP_UNIQUE_NAME}
 # Use the Image ID or fully qualified path incl. sha256 to avoid conflicts
-    image: ${image:-§§IMAGE_ID§§}
+    image: §§IMAGE_ID§§
     stdin_open: true # podman run -i
     tty: true        # podman run -t
     volumes:

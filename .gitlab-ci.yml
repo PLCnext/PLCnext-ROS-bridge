@@ -171,7 +171,7 @@ publish_${APP_NAME}_ros2:
     - sed -i 's/[^:]*:\(.*\)/\1/' image.id
     - mkdir $APP_PATH
     - cp ${DOCKER_IMAGE_PATH}/${TARGET//:/-}.tar $APP_PATH/$APP_NAME.tar
-    - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/app-compose.yml
+    - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/compose.yml
     - sed -i "s/§§IMAGE_ID§§/$(<image.id)/g" ./app/initscript.sh
     - sed -i "s/§§TARGETS§§/${TARGET_DEVICES}/g" ./app/app_info.json
     - sed -i "s/§§ROS_BRIDGE_VERSION§§/${ROS_BRIDGE_VERSION}/g" ./app/app_info.json
