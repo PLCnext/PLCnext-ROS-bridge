@@ -30,17 +30,8 @@ export APP_DATA_PATH="${APP_HOME}/data/${APP_ID}" # app persistent data storage
 export APP_LOG="${APP_DATA_PATH}/${APP_NAME}.log" # logfile
 export ROS_IP=$(ip -o addr show | awk '{print $4}' | cut -d / -f 1 | head -5 | tail +5)
 
-##________APP configuration________##
-
-# specify image archives and their accociated IDs in an array
-# IMAGES[<image_ID>]=<image_archive>
-declare -A IMAGES
-IMAGES[§§IMAGE_ID§§]=$APP_NAME.tar
-# add all volumes to make them accessible to the container users and PLCnext admin (IDs 1002:1002)
-# Space separated list e.g. VOLUMES=("${APP_DATA_PATH}/test1" "${APP_DATA_PATH}/test2")
-declare -a VOLUMES=( "${APP_DATA_PATH}/doc" )
-
-##________Do not change the code below!________##
+#add path to app-binaries
+export PATH=$PATH:$APP_HOME/bin
 
 start () 
 {
@@ -59,67 +50,60 @@ start ()
   #   the container is already loaded into the container cache. 
   #   It will be started by the container engine automatically.
  
-  # copy user configuration file to the app persistent storage if needed
-  if [ ! -e "${APP_DATA_PATH}/user.env"  ]
-  then
-    echo "$(date): Creating  ${APP_DATA_PATH}/user.env" >> $APP_LOG
-    cp -p ${APP_PATH}/user.env ${APP_DATA_PATH}
+  echo "$(date) Executing start()" >> $APP_LOG
+
+ # Check app, install, run
+  if [ -e "$APP_DATA_PATH/dockerapp_install" ]; then
+    # app is already installed and container exists
+    # just start it
+    echo "$NAME is already installed. podman will start it automatically" >> $APP_LOG
+
+    chmod -R 777 $APP_DATA_PATH
+    cd $APP_DATA_PATH
+    
+    podman-compose down
+    podman-compose up -d
+
+  else
+    echo "$NAME is not installed --> load images and install" >> $APP_LOG
+    echo "Copy content" >> $APP_LOG
+    cp -r $APP_PATH "$APP_HOME/data"
+  
+    chmod -R 777 $APP_DATA_PATH 
+
+    echo "Load images" >> $APP_LOG
+    podman load -i $APP_DATA_PATH/images/plcnext-ros-bridge.tar >> $APP_LOG 2>&1
+    if [ ! $? -eq 0 ]
+    then
+      stop
+      echo "$(date): Wasn't able to load  $APP_NAME." >> $APP_LOG
+      exit 201
+    fi
+
+  # Remove tmp tar file from container load
+    rm /media/rfs/rw/data/system/containers/docker-tar* >> $APP_LOG 2>&1
+    if [ ! $? -eq 0 ]
+    then
+      echo "$(date): Wasn't able to remove with command: '$0'." >> $APP_LOG
+    fi
+
+    echo "Start compose" >> $APP_LOG
+    cd $APP_DATA_PATH
+    podman-compose up -d >> $APP_LOG 2>&1
+    if [ ! $? -eq 0 ]
+    then 
+      stop 
+      echo "$(date): Wasn't able to start podman compose." >> $APP_LOG
+      exit 201
+    fi
+    
+    # set app is installed
+    touch $APP_DATA_PATH/dockerapp_install
+    echo "Installation finished" >> $APP_LOG
   fi
 
-  for VOLUME in "${VOLUMES[@]}"
-  do
-    if [ ! -d $VOLUME ]
-    then
-      echo "$(date): Creating $VOLUME" >> $APP_LOG
-      mkdir $VOLUME
-      if [ ! $? -eq 0 ]
-      then
-        stop
-        echo "$(date): Creating $VOLUME failed" >> $APP_LOG
-        exit 101
-      fi
-      echo "$(date): CHOWN admin:plcnext for $VOLUME" >> $APP_LOG
-      chown 1002:1002 $VOLUME
-      if [ ! $? -eq 0 ]
-      then
-        stop
-        echo "$(date): CHMOD for $VOLUME failed" >> $APP_LOG
-        exit 102
-      fi
-    fi
-  done
-
-  # check for image, otherwise load image
-  for IMAGE_NAME in "${!IMAGES[@]}"
-  do
-    echo "$(date): Checking image $IMAGE_NAME" >> $APP_LOG
-    if ! $CONTAINER_ENGINE image exists $IMAGE_NAME
-    then
-      echo "$(date): $IMAGE_NAME is not available in cache and will now be loaded" >> $APP_LOG
-      $CONTAINER_ENGINE load -i ${APP_PATH}/images/${IMAGES[$IMAGE_NAME]} >> $APP_LOG 2>&1
-      if [ ! $? -eq 0 ]
-      then
-        stop
-        echo "$(date): Wasn't able to load  $IMAGE_NAME from ${IMAGES[$IMAGE_NAME]}" >> $APP_LOG
-        exit 201
-      fi
-    fi
-  done
-
-  if $CONTAINER_ENGINE pod exists pod_${APP_UNIQUE_NAME}
-    then
-      echo "$(date): Restarting $APP_NAME" >> $APP_LOG
-      # Compose START
-      sleep 15
-      $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} up -d --force-recreate >> $APP_LOG 2>&1
-    else 
-      # Compose UP
-      sleep 15
-      echo "$(date): Starting $APP_NAME" >> $APP_LOG
-      $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} up -d >> $APP_LOG 2>&1
-  fi
-  echo "$(date): start() finished" >> $APP_LOG
-
+  echo "$(date) start() finished" >> $APP_LOG
+  
   # write Podman events to syslog
   logger -f /run/libpod/events/events.log
   rm -f /run/libpod/events/events.log
@@ -127,49 +111,34 @@ start ()
 
 stop ()
 {
-  echo "$(date): Executing stop()" >> $APP_LOG
+  echo "$(date) Executing stop()" >> $APP_LOG
   # stop() is called when App is stopped by the AppManager e.g. via WBM
-  # in this case the container needs to be stopped and removed from 
+  # in this case the container needs to be stopped and removed from
   # the container cache. The goal is to keep the controller clean.
   # stop() is also called when the system will shutdown.
-  # In this case the container should not be removed. 
+  # In this case the container should not be removed.
   # The container should just be started when the controller starts up again.
-
+  if [ -e "$APP_DATA_PATH/dockerapp_install"  ]; then
     # Distinguish whether the controller is in shutdown phase
     # if not shutdown then the app is explicitly stopped -> remove container and image
-  currentRunlevel=$(runlevel | cut -d ' ' -f2)
-  echo "$(date): current runlevel=${currentRunlevel}" >> $APP_LOG
+    currentRunlevel=$(runlevel | cut -d ' ' -f2)
+    echo current runlevel=$currentRunlevel >> $APP_LOG
 
-  
-  if [ "$currentRunlevel" -ne "6" ]
-  then
-  # User pressed Stop
-    echo "$(date): Stoping pod_${APP_UNIQUE_NAME} " >> $APP_LOG
-    $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} down >> $APP_LOG 2>&1
-    echo "$(date): Remove network ${APP_UNIQUE_NAME}_default" >> $APP_LOG
-    $CONTAINER_ENGINE network rm ${APP_UNIQUE_NAME}_default >> $APP_LOG 2>&1
-    echo "$(date): Remove image(s)" >> $APP_LOG
-    for IMAGE_NAME in "${!IMAGES[@]}"
-    do
-      if $CONTAINER_ENGINE image exists $IMAGE_NAME
-      then
-        $CONTAINER_ENGINE rmi $IMAGE_NAME >> $APP_LOG 2>&1
-        if [ ! $? -eq 0 ]
-        then
-          echo "$(date): Wasn't able to delete $IMAGE_NAME, $IMAGE_NAME still in use!"  >> $APP_LOG
-        else
-          echo "$(date): $IMAGE_NAME deleted" >> $APP_LOG
-        fi
-      else
-        echo "$(date): Wasn't able to delete $IMAGE_NAME, $IMAGE_NAME not available!"  >> $APP_LOG
-      fi
-    done
+    if [ "$currentRunlevel" -ne "6" ]; then
+      echo "Stop $NAME" >> $APP_LOG
+      cd $APP_DATA_PATH
+      echo "Remove compose and all used images."
+      podman-compose down 
+      podman image rm --force §§IMAGE_ID§§
+      rm $APP_DATA_PATH/dockerapp_install
+    fi
   else
-  # System shutdown
-    $COMPOSE_ENGINE -f ${APP_PATH}/app-compose.yml -p ${APP_UNIQUE_NAME} down >> $APP_LOG 2>&1
+    echo "Stop $NAME: container not installed" >> $APP_LOG
+    # the container is not installed.
+    # nothing to be done
   fi
-  echo "$(date): stop() finished" >> $APP_LOG
-  
+  echo "$(date) stop() finished" >> $APP_LOG
+
   # write Podman events to syslog
   logger -f /run/libpod/events/events.log
   rm -f /run/libpod/events/events.log
